@@ -1,0 +1,431 @@
+!DOCTYPE html
+html lang=pt-BR
+head
+meta charset=UTF-8
+meta name=viewport content=width=device-width, initial-scale=1.0
+titleConsultor de Recursos de Veículostitle
+script src=httpscdnjs.cloudflare.comajaxlibsxlsx0.18.5xlsx.full.min.jsscript
+style
+   { box-sizing border-box; margin 0; padding 0; }
+  body { font-family 'Segoe UI', sans-serif; background #0f172a; color #e2e8f0; min-height 100vh; padding 24px 16px; }
+  .container { max-width 780px; margin 0 auto; }
+  header { text-align center; margin-bottom 28px; position relative; }
+  header h1 { font-size 1.8rem; font-weight 700; color #f8fafc; }
+  header p { color #94a3b8; margin-top 6px; font-size 0.95rem; }
+  .settings-btn { position absolute; top 4px; right 0; background #1e293b; border 1px solid #334155; color #94a3b8; border-radius 10px; padding 8px 14px; cursor pointer; font-size 0.9rem; display flex; align-items center; gap 6px; transition all 0.2s; }
+  .settings-btnhover { border-color #3b82f6; color #3b82f6; }
+  .card { background #1e293b; border 1px solid #334155; border-radius 16px; padding 24px; margin-bottom 20px; }
+  .card h2 { font-size 1rem; font-weight 600; color #cbd5e1; margin-bottom 16px; display flex; align-items center; gap 8px; flex-wrap wrap; }
+  .step { background #3b82f6; color white; border-radius 50%; width 24px; height 24px; display inline-flex; align-items center; justify-content center; font-size 0.8rem; flex-shrink 0; }
+  .field { margin-bottom 14px; }
+  .row2 { display flex; gap 12px; }
+  .row2  .field { flex 1; }
+  label.fl { display block; font-size 0.82rem; color #94a3b8; margin-bottom 6px; font-weight 500; }
+  input[type=text], select { width 100%; background #0f172a; border 1px solid #334155; border-radius 10px; padding 12px 14px; color #f1f5f9; font-size 0.95rem; outline none; transition border-color 0.2s; appearance none; }
+  inputfocus, selectfocus { border-color #3b82f6; }
+  inputplaceholder { color #475569; }
+  button.primary { width 100%; padding 13px; background #3b82f6; color white; border none; border-radius 10px; font-size 1rem; font-weight 600; cursor pointer; transition background 0.2s; }
+  button.primaryhover { background #2563eb; }
+  button.primarydisabled { background #334155; color #64748b; cursor not-allowed; }
+  button.ghost { background transparent; border 1px solid #334155; color #94a3b8; border-radius 10px; padding 11px; font-size 0.9rem; cursor pointer; flex 1; }
+  button.ghosthover { border-color #64748b; color #e2e8f0; }
+  .status-info    { background #1e3a5f; color #93c5fd; font-size 0.88rem; padding 11px 14px; border-radius 8px; margin-bottom 12px; }
+  .status-error   { background #3b0f0f; color #fca5a5; font-size 0.88rem; padding 11px 14px; border-radius 8px; margin-bottom 12px; }
+  .status-warn    { background #451a03; color #fbbf24; font-size 0.88rem; padding 11px 14px; border-radius 8px; margin-bottom 12px; display flex; align-items center; gap 8px; }
+  .status-success { background #14532d; color #86efac; font-size 0.88rem; padding 11px 14px; border-radius 8px; margin-bottom 12px; }
+  #loading-screen { text-align center; padding 50px 20px; }
+  .big-spinner { width 44px; height 44px; border 4px solid #334155; border-top-color #3b82f6; border-radius 50%; animation spin 0.8s linear infinite; margin 0 auto 16px; }
+  #loading-screen h3 { color #e2e8f0; margin-bottom 6px; }
+  #loading-screen p  { color #94a3b8; font-size 0.88rem; }
+  .modal-overlay { display none; position fixed; inset 0; background rgba(0,0,0,0.75); z-index 200; align-items flex-start; justify-content center; padding 16px; overflow-y auto; }
+  .modal-overlay.open { display flex; }
+  .modal { background #1e293b; border 1px solid #334155; border-radius 16px; padding 28px; width 100%; max-width 600px; margin auto; }
+  .modal-header { display flex; align-items center; justify-content space-between; margin-bottom 22px; }
+  .modal-header h3 { font-size 1.1rem; font-weight 700; color #f1f5f9; }
+  .modal-close { background transparent; border none; color #64748b; font-size 1.4rem; cursor pointer; }
+  .modal-closehover { color #e2e8f0; }
+  .modal-section { margin-bottom 22px; }
+  .modal-section h4 { font-size 0.85rem; font-weight 600; color #94a3b8; text-transform uppercase; letter-spacing 0.05em; margin-bottom 12px; }
+  .modal-actions { display flex; gap 10px; margin-top 24px; }
+  .res-search { width 100%; margin-bottom 10px; background #0f172a; border 1px solid #334155; border-radius 10px; padding 9px 14px; color #f1f5f9; font-size 0.88rem; outline none; }
+  .res-searchfocus { border-color #3b82f6; }
+  .res-actions { display flex; gap 8px; margin-bottom 10px; }
+  .btn-xs { background #0f172a; border 1px solid #3b82f6; color #3b82f6; border-radius 7px; padding 5px 12px; font-size 0.78rem; cursor pointer; }
+  .btn-xshover { background #172554; }
+  .tag-grid { display flex; flex-wrap wrap; gap 7px; max-height 220px; overflow-y auto; padding 2px; }
+  .rtag { background #0f172a; border 1px solid #334155; border-radius 7px; padding 5px 11px; font-size 0.78rem; cursor pointer; color #94a3b8; transition all 0.15s; user-select none; }
+  .rtaghover { border-color #3b82f6; color #93c5fd; }
+  .rtag.on { background #1d4ed8; border-color #3b82f6; color #fff; }
+  .sel-badge { background #1d4ed8; color #fff; border-radius 6px; padding 2px 8px; font-size 0.75rem; margin-left 8px; }
+  .crlv-label { display inline-block; background #0f172a; border 1px solid #334155; border-radius 6px; padding 2px 8px; font-size 0.72rem; color #64748b; margin-left 6px; vertical-align middle; }
+  .sheet-info { display flex; align-items center; gap 10px; background #14532d; border 1px solid #166534; border-radius 10px; padding 10px 14px; margin-bottom 4px; }
+  .sheet-info .si-icon { font-size 1.2rem; }
+  .sheet-info .si-text { font-size 0.82rem; color #86efac; font-weight 600; }
+  .sheet-info .si-meta { font-size 0.75rem; color #4ade80; }
+  .ai-thinking { display flex; align-items center; gap 14px; background #1e293b; border 1px solid #334155; border-radius 12px; padding 18px; }
+  .ai-thinking .spinner { width 28px; height 28px; border 3px solid #334155; border-top-color #3b82f6; border-radius 50%; animation spin 0.7s linear infinite; flex-shrink 0; }
+  .ai-thinking p { color #94a3b8; font-size 0.9rem; }
+  .ai-thinking p b { color #e2e8f0; display block; margin-bottom 3px; }
+  @keyframes spin { to { transform rotate(360deg); } }
+  .match-card { border 2px solid #334155; border-radius 12px; padding 16px 18px; margin-bottom 10px; cursor pointer; transition all 0.2s; background #0f172a; }
+  .match-cardhover { border-color #3b82f6; background #172554; }
+  .match-cardafter { content '👆 Clique para ver os recursos'; display block; margin-top 10px; font-size 0.75rem; color #3b82f6; text-align right; }
+  .mc-header { display flex; align-items center; justify-content space-between; margin-bottom 6px; }
+  .mc-model { font-weight 700; color #f1f5f9; font-size 0.95rem; }
+  .mc-badge.high { background #14532d; color #4ade80; font-size 0.72rem; font-weight 700; padding 3px 10px; border-radius 20px; }
+  .mc-meta { font-size 0.82rem; color #64748b; }
+  .mc-reason { font-size 0.8rem; color #475569; margin-top 6px; font-style italic; }
+  .result-badge-exact   { background #14532d; color #4ade80; font-size 0.72rem; padding 3px 10px; border-radius 20px; margin-left 6px; font-weight 700; }
+  .result-badge-similar { background #92400e; color #fbbf24; font-size 0.72rem; padding 3px 10px; border-radius 20px; margin-left 6px; font-weight 700; }
+  .result-badge-nf      { background #7f1d1d; color #fca5a5; font-size 0.72rem; padding 3px 10px; border-radius 20px; margin-left 6px; font-weight 700; }
+  .vehicle-found { background #172554; border 1px solid #1e40af; border-radius 10px; padding 12px 16px; margin-bottom 14px; font-size 0.9rem; color #93c5fd; }
+  .vehicle-found strong { color #fff; }
+  .summary-bar { display flex; gap 10px; margin-bottom 16px; }
+  .sum-box { flex 1; background #0f172a; border-radius 10px; padding 12px; text-align center; }
+  .sum-box .num { font-size 1.5rem; font-weight 700; }
+  .sum-box .lbl { font-size 0.75rem; color #64748b; margin-top 2px; }
+  .sum-box.yes .num { color #4ade80; }
+  .sum-box.no  .num { color #f87171; }
+  .results-grid { display grid; grid-template-columns repeat(auto-fill, minmax(210px, 1fr)); gap 10px; }
+  .result-item { background #0f172a; border-radius 10px; padding 12px 14px; display flex; align-items center; gap 10px; }
+  .result-item.yes { border 1px solid #166534; }
+  .result-item.no  { border 1px solid #7f1d1d; }
+  .result-item.yes .rname { color #86efac; }
+  .result-item.no  .rname { color #fca5a5; }
+  .result-item .icon  { font-size 1.2rem; flex-shrink 0; }
+  .result-item .rname { font-size 0.85rem; line-height 1.3; }
+  .not-found-box { background #3b0f0f; border 1px solid #7f1d1d; border-radius 12px; padding 28px 20px; text-align center; }
+  .not-found-box .nf-icon { font-size 2.5rem; margin-bottom 12px; }
+  .not-found-box .nf-title { color #fca5a5; font-weight 600; margin-bottom 6px; }
+  .not-found-box .nf-sub   { color #94a3b8; font-size 0.85rem; margin-bottom 16px; }
+style
+head
+body
+div class=container
+  header
+    h1🚗 Consultor de Recursosh1
+    pVerifique os recursos disponíveis para o seu veículop
+    button class=settings-btn onclick=openModal()⚙️ Configuraçõesbutton
+  header
+
+  !-- MODAL --
+  div class=modal-overlay id=modal
+    div class=modal
+      div class=modal-header
+        h3⚙️ Configuraçõesh3
+        button class=modal-close onclick=closeModal()✕button
+      div
+      div class=modal-section
+        h4📊 Planilhah4
+        div id=modal-sheet-statusdiv
+      div
+      div class=modal-section id=modal-res-section style=displaynone
+        h4✅ Recursos a Consultar span class=sel-badge id=modal-sel-count0spanh4
+        input class=res-search id=modal-res-search placeholder=🔍 Filtrar recursos... oninput=filterModalTags()
+        div class=res-actions
+          button class=btn-xs onclick=modalSelectAll()Selecionar todosbutton
+          button class=btn-xs onclick=modalClearAll()Limparbutton
+        div
+        div class=tag-grid id=modal-tag-griddiv
+      div
+      div class=modal-actions
+        button class=ghost onclick=closeModal()Fecharbutton
+        button class=primary id=modal-save-btn style=flex2;displaynone onclick=saveSettings()💾 Salvar Recursosbutton
+      div
+    div
+  div
+
+  !-- LOADING --
+  div class=card id=loading-screen
+    div class=big-spinnerdiv
+    h3Carregando planilha...h3
+    p id=loading-msgConectando ao servidor...p
+  div
+
+  !-- MAIN --
+  div id=screen-main style=displaynone
+    div class=card
+      h2span class=step1span Dados do CRLVh2
+      div class=row2
+        div class=field
+          label class=flMarca span class=crlv-labelCRLVspanlabel
+          select id=crlv-makeoption value=— Selecione a marca —optionselect
+        div
+        div class=field
+          label class=flModelo  Versão span class=crlv-labelCRLVspanlabel
+          input type=text id=crlv-model placeholder=Ex POLO 1.6 MSI AT COMFORTLINE
+        div
+      div
+      div class=row2
+        div class=field
+          label class=flAno Fabricação span class=crlv-labelCRLVspanlabel
+          input type=text id=crlv-year-fab placeholder=Ex 2021
+        div
+        div class=field
+          label class=flAno Modelo span class=crlv-labelCRLVspanlabel
+          input type=text id=crlv-year-mod placeholder=Ex 2022
+        div
+      div
+      div class=status-info🤖 A IA irá interpretar os dados do seu CRLV e encontrar as melhores opções na planilhadiv
+      div id=search-status style=displaynonediv
+      button class=primary id=btn-search onclick=searchWithAI()🤖 Buscar com IAbutton
+    div
+    div id=card-results style=displaynonediv
+  div
+div
+
+script
+ ── Config — atualize o CSV_URL se mudar o repositório ──
+var CSV_URL = 'httpsraw.githubusercontent.comrvieira-infleetcan_supported_veihcle-teltonikarefsheadsmainFMX150_Supported_Vehicles_03_17_2026.CSV';
+var LS_RESOURCES = 'vrc_selected_resources';
+var PROXIES = [
+  'httpsapi.allorigins.winrawurl=',
+  'httpscorsproxy.io',
+  'httpsapi.codetabs.comv1proxyquest='
+];
+
+var sheetData = [], headers = [], resourceHeaders = [], selectedResources = [];
+var lastMatches = [], lastInput = {};
+
+window.addEventListener('load', function() {
+  var saved = loadSavedResources();
+  if (saved) selectedResources = saved;
+  tryFetchWithProxies(0);
+});
+
+function tryFetchWithProxies(idx) {
+  if (idx = PROXIES.length) { tryDirectFetch(); return; }
+  var url = PROXIES[idx] + encodeURIComponent(CSV_URL);
+  var msgEl = document.getElementById('loading-msg');
+  if (msgEl) msgEl.textContent = 'Tentativa ' + (idx + 1) + ' de ' + (PROXIES.length + 1) + '...';
+  fetch(url, { cache 'no-store' })
+    .then(function(r) { if (!r.ok) throw new Error(''); return r.text(); })
+    .then(function(t) {
+      if (!t  t.length  100  t.indexOf(',') === -1) throw new Error('');
+      parseCSV(t); onSheetLoaded();
+    })
+    .catch(function() { tryFetchWithProxies(idx + 1); });
+}
+
+function tryDirectFetch() {
+  fetch(CSV_URL, { cache 'no-store' })
+    .then(function(r) { if (!r.ok) throw new Error(''); return r.text(); })
+    .then(function(t) { parseCSV(t); onSheetLoaded(); })
+    .catch(function() { showLoadError(); });
+}
+
+function onSheetLoaded() {
+  document.getElementById('loading-screen').style.display = 'none';
+  buildMakeDropdown();
+  document.getElementById('screen-main').style.display = 'block';
+  if (!selectedResources.length) { buildModalContent(); openModal(); }
+}
+
+function showLoadError() {
+  document.getElementById('loading-screen').innerHTML =
+    'div style=text-aligncenter;padding20px' +
+    'div style=font-size2rem;margin-bottom12px⚠️div' +
+    'h3 style=color#fca5a5;margin-bottom8pxErro ao carregar planilhah3' +
+    'p style=color#94a3b8;font-size0.85rem;margin-bottom16pxNão foi possível conectar. Verifique sua conexão e tente novamente.p' +
+    'button class=primary style=max-width200px;margin0 auto onclick=tryFetchWithProxies(0)🔄 Tentar novamentebutton' +
+    'div';
+}
+
+function parseCSV(text) {
+  var rows = [], cur = '', inQ = false, row = [];
+  for (var i = 0; i  text.length; i++) {
+    var c = text[i];
+    if (c === '') { inQ = !inQ; }
+    else if (c === ',' && !inQ) { row.push(cur.trim()); cur = ''; }
+    else if ((c === 'n'  c === 'r') && !inQ) {
+      if (cur  row.length) { row.push(cur.trim()); rows.push(row); cur = ''; row = []; }
+      if (c === 'r' && text[i+1] === 'n') i++;
+    } else { cur += c; }
+  }
+  if (cur  row.length) { row.push(cur.trim()); rows.push(row); }
+  if (rows.length  2) throw new Error('Vazio');
+  var hi = 0;
+  for (var i = 0; i  Math.min(10, rows.length); i++) {
+    if (String(rows[i][3]'').trim().toLowerCase() === 'model') { hi = i; break; }
+  }
+  headers = rows[hi].map(function(h) { return String(h).trim(); });
+  resourceHeaders = headers.slice(8).filter(function(h) { return h !== ''; });
+  sheetData = rows.slice(hi+1).map(function(r) {
+    var o = {};
+    headers.forEach(function(h, i) { o[h] = String(r[i]!==undefinedr[i]'').trim(); });
+    return o;
+  }).filter(function(r) { return (r[headers[3]]'').trim() !== ''; });
+}
+
+function buildMakeDropdown() {
+  var makes = [];
+  sheetData.forEach(function(r) { var m=(r[headers[2]]'').trim(); if(m&&makes.indexOf(m)===-1) makes.push(m); });
+  makes.sort();
+  var sel = document.getElementById('crlv-make');
+  sel.innerHTML = 'option value=— Selecione a marca —option';
+  makes.forEach(function(m) { var o=document.createElement('option'); o.value=m; o.textContent=m; sel.appendChild(o); });
+}
+
+function openModal()  { buildModalContent(); document.getElementById('modal').classList.add('open'); }
+function closeModal() { document.getElementById('modal').classList.remove('open'); }
+
+function buildModalContent() {
+  document.getElementById('modal-sheet-status').innerHTML = sheetData.length
+     'div class=sheet-infospan class=si-icon✅spandivdiv class=si-textPlanilha carregada do GitHubdivdiv class=si-meta' + sheetData.length + ' veículos · ' + resourceHeaders.length + ' recursosdivdivdivp style=font-size0.78rem;color#475569;margin-top8pxAtualizada automaticamente quando o arquivo no GitHub for alterado.p'
+     'div class=status-errorPlanilha não carregada.div';
+  if (resourceHeaders.length) {
+    document.getElementById('modal-res-section').style.display = 'block';
+    document.getElementById('modal-save-btn').style.display = 'block';
+    buildModalTags();
+  }
+}
+
+function buildModalTags() {
+  var grid = document.getElementById('modal-tag-grid');
+  grid.innerHTML = '';
+  resourceHeaders.forEach(function(h) {
+    var t = document.createElement('div');
+    t.className = 'rtag' + (selectedResources.indexOf(h)!==-1' on''');
+    t.textContent = h; t.dataset.r = h;
+    t.onclick = function() { t.classList.toggle('on'); updateModalCount(); };
+    grid.appendChild(t);
+  });
+  updateModalCount();
+}
+
+function filterModalTags() {
+  var q = norm(document.getElementById('modal-res-search').value);
+  document.querySelectorAll('.rtag').forEach(function(t) { t.style.display=norm(t.textContent).indexOf(q)!==-1'''none'; });
+}
+function modalSelectAll() { document.querySelectorAll('.rtag').forEach(function(t){if(t.style.display!=='none')t.classList.add('on');}); updateModalCount(); }
+function modalClearAll()  { document.querySelectorAll('.rtag').forEach(function(t){t.classList.remove('on');}); updateModalCount(); }
+function updateModalCount() { document.getElementById('modal-sel-count').textContent=document.querySelectorAll('.rtag.on').length; }
+
+function saveSettings() {
+  var sel = Array.from(document.querySelectorAll('.rtag.on')).map(function(t){return t.dataset.r;});
+  if (!sel.length) { alert('Selecione pelo menos um recurso.'); return; }
+  selectedResources = sel;
+  persistResources(sel);
+  closeModal();
+}
+
+function persistResources(list) { try { localStorage.setItem(LS_RESOURCES, JSON.stringify(list)); } catch(e) {} }
+function loadSavedResources()   { try { var v=localStorage.getItem(LS_RESOURCES); return vJSON.parse(v)null; } catch(e){return null;} }
+function norm(s) { return s.toLowerCase().normalize('NFD').replace([u0300-u036f]g,'').trim(); }
+
+function checkYearMatch(yearFab, rowYear) {
+  if (!yearFab!rowYear) return true;
+  var fy=parseInt(yearFab,10); if(isNaN(fy)) return true;
+  var ry=rowYear.trim();
+  if (ry.indexOf('-')!==-1) { var p=ry.split('-'),y1=parseInt(p[0].trim(),10),y2=parseInt(p[1].trim(),10); if(!isNaN(y1)&&!isNaN(y2)) return fy=y1&&fy=y2; }
+  else if (ry.indexOf('+')!==-1) { var y1=parseInt(ry.replace('+','').trim(),10); if(!isNaN(y1)) return fy=y1; }
+  else { var y1=parseInt(ry,10); if(!isNaN(y1)) return fy===y1; }
+  return true;
+}
+
+function searchWithAI() {
+  var make=document.getElementById('crlv-make').value.trim();
+  var model=document.getElementById('crlv-model').value.trim();
+  var yearFab=document.getElementById('crlv-year-fab').value.trim();
+  var yearMod=document.getElementById('crlv-year-mod').value.trim();
+  if (!make&&!model) { var el=document.getElementById('search-status'); el.className='status-error'; el.innerHTML='Preencha ao menos a Marca ou o Modelo.'; el.style.display='block'; return; }
+  if (!selectedResources.length) { openModal(); return; }
+  lastInput={makemake,modelmodel,yearFabyearFab,yearModyearMod};
+  var vehicleList=sheetData.map(function(r,i){return i+''+(r[headers[2]]'')+''+(r[headers[3]]'')+''+(r[headers[4]]'');}).join('n');
+  var btn=document.getElementById('btn-search');
+  btn.disabled=true; btn.textContent='⏳ Consultando IA...';
+  document.getElementById('search-status').style.display='none';
+  var rd=document.getElementById('card-results');
+  rd.style.display='block';
+  rd.innerHTML='div class=carddiv class=ai-thinkingdiv class=spinnerdivpbIA analisando seu veículo...bComparando dados do CRLV com a base de veículos suportadospdivdiv';
+  rd.scrollIntoView({behavior'smooth'});
+  var prompt='Você é um especialista em identificação de veículos. O usuário possui um veículo com os seguintes dados do CRLV brasileiron'
+    +'- Marca '+(make'não informada')+'n'
+    +'- ModeloVersão '+(model'não informado')+'n'
+    +'- Ano Fabricação '+(yearFab'não informado')+'n'
+    +'- Ano Modelo '+(yearMod'não informado')+'nn'
+    +'Lista de veículos (INDEXFABRICANTEMODELOANO)nn'+vehicleList+'nn'
+    +'Identifique correspondências de ALTA confiança. Nomes do CRLV podem diferir dos internacionais.n'
+    +'Retorne APENAS matches com confidence high. Se não houver, retorne array vazio.n'
+    +'Responda APENAS com JSON válidon'
+    +'{matches[{index0,confidencehigh,reasonmotivo em português}]}';
+  fetch('httpsapi.anthropic.comv1messages',{
+    method'POST',
+    headers{'Content-Type''applicationjson'},
+    bodyJSON.stringify({model'claude-sonnet-4-20250514',max_tokens1000,messages[{role'user',contentprompt}]})
+  })
+  .then(function(r){return r.json();})
+  .then(function(data){
+    var text=data.content&&data.content[0]data.content[0].text'{matches[]}';
+    var parsed=JSON.parse(text.replace(```jsong,'').replace(```g,'').trim());
+    lastMatches=parsed.matches[];
+    if(!lastMatches.length) renderNotFound(make,model); else renderMatchCards(lastMatches);
+  })
+  .catch(function(err){ rd.innerHTML='div class=carddiv class=status-error❌ Erro '+err.message+'divdiv'; })
+  .finally(function(){ btn.disabled=false; btn.textContent='🤖 Buscar com IA'; });
+}
+
+function renderNotFound(make,model) {
+  document.getElementById('card-results').innerHTML='div class=card'
+    +'h2span class=step2span Resultado span class=result-badge-nfNÃO ENCONTRADOspanh2'
+    +'div class=not-found-boxdiv class=nf-icon🔍div'
+    +'p class=nf-titleModelo não encontrado na basep'
+    +'p class=nf-subNenhuma correspondência para b'+make+' '+model+'b.p'
+    +'button class=primary style=max-width200px;margin0 auto onclick=resetSearch()🔁 Nova Consultabutton'
+    +'divdiv';
+}
+
+function renderMatchCards(matches) {
+  var html='div class=cardh2span class=step2span Sugestões da IAh2'
+    +'div class=status-info style=margin-bottom16px📋 CRLV b'+lastInput.make+'b '+lastInput.model
+    +' &nbsp;·&nbsp; Fab '+lastInput.yearFab+'  Mod '+lastInput.yearMod+'div';
+  matches.forEach(function(m) {
+    var row=sheetData[m.index]; if(!row) return;
+    html+='div class=match-card onclick=pickMatch('+m.index+')'
+      +'div class=mc-headerspan class=mc-model'+(row[headers[2]]'')+' '+(row[headers[3]]'')+'span'
+      +'span class=mc-badge high✅ Alta confiançaspandiv'
+      +'div class=mc-metaAno '+(row[headers[4]]'—')+' &nbsp;·&nbsp; '+(row[headers[5]]'')+' &nbsp;·&nbsp; '+(row[headers[6]]'')+'div'
+      +'div class=mc-reason💬 '+(m.reason'')+'divdiv';
+  });
+  html+='div';
+  document.getElementById('card-results').innerHTML=html;
+  document.getElementById('card-results').scrollIntoView({behavior'smooth'});
+}
+
+function pickMatch(idx) {
+  var row=sheetData[idx]; if(!row) return;
+  var rowYear=(row[headers[4]]'').trim();
+  var isExact=checkYearMatch(lastInput.yearFab,rowYear);
+  var yc=0,nc=0,itemsHtml='';
+  selectedResources.forEach(function(res) {
+    var val=(row[res]'').trim().toLowerCase();
+    var yes=['+','1','sim','s','yes','y','true','x'].indexOf(val)!==-1;
+    if(yes) yc++; else nc++;
+    itemsHtml+='div class=result-item '+(yes'yes''no')+'span class=icon'+(yes'✅''❌')+'spanspan class=rname'+res+'spandiv';
+  });
+  var badge=isExact'span class=result-badge-exactEXATOspan''span class=result-badge-similarSIMILARspan';
+  var banner=isExact'''div class=status-warn⚠️ spanbResultado SIMILARb — Ano do CRLV ('+lastInput.yearFab+') difere do intervalo na base ('+rowYear+'). Os recursos podem variar.spandiv';
+  document.getElementById('card-results').innerHTML='div class=card'
+    +'h2span class=step3span Resultado '+badge+'h2'+banner
+    +'div class=vehicle-foundstrong'+(row[headers[2]]'—')+'strong '+(row[headers[3]]'—')+' &nbsp;&nbsp; Ano base strong'+(rowYear'—')+'strongdiv'
+    +'div class=summary-bardiv class=sum-box yesdiv class=num'+yc+'divdiv class=lblDisponíveisdivdivdiv class=sum-box nodiv class=num'+nc+'divdiv class=lblIndisponíveisdivdivdiv'
+    +'div class=results-grid'+itemsHtml+'divbr'
+    +'div style=displayflex;gap10pxbutton class=ghost onclick=resetSearch()🔁 Nova Consultabuttonbutton class=primary style=flex2 onclick=backToSuggestions()← Voltar às Sugestõesbuttondiv'
+    +'div';
+  document.getElementById('card-results').scrollIntoView({behavior'smooth'});
+}
+
+function backToSuggestions() { if(lastMatches.length) renderMatchCards(lastMatches); else searchWithAI(); }
+
+function resetSearch() {
+  document.getElementById('crlv-make').value='';
+  document.getElementById('crlv-model').value='';
+  document.getElementById('crlv-year-fab').value='';
+  document.getElementById('crlv-year-mod').value='';
+  document.getElementById('search-status').style.display='none';
+  document.getElementById('card-results').style.display='none';
+  document.getElementById('card-results').innerHTML='';
+}
+script
+body
+html
