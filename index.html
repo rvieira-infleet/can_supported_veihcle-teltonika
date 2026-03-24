@@ -224,11 +224,15 @@ function showLoadError() {
 }
 
 function parseCSV(text) {
-  var rows = [], cur = '', inQ = false, row = [];
+  // Auto-detect separator: semicolon or comma
+  var sep = text.indexOf(';') !== -1 && text.indexOf(';') < text.indexOf('\n') ? ';' : ',';
+  console.log('Separador detectado:', sep);
+  var rows = [];
+  var cur = '', inQ = false, row = [];
   for (var i = 0; i < text.length; i++) {
     var c = text[i];
     if (c === '"') { inQ = !inQ; }
-    else if (c === ',' && !inQ) { row.push(cur.trim()); cur = ''; }
+    else if (c === sep && !inQ) { row.push(cur.trim()); cur = ''; }
     else if ((c === '\n' || c === '\r') && !inQ) {
       if (cur || row.length) { row.push(cur.trim()); rows.push(row); cur = ''; row = []; }
       if (c === '\r' && text[i+1] === '\n') i++;
