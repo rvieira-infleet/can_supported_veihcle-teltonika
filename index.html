@@ -194,7 +194,7 @@ function tryFetchWithProxies(idx) {
   fetch(CSV_URL, { cache: 'no-store' })
     .then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
     .then(function(t) {
-      if (!t || t.length < 100 || t.indexOf(',') === -1) throw new Error('Arquivo inválido');
+      if (!t || t.length < 10) throw new Error('Arquivo vazio');
       parseCSV(t); onSheetLoaded();
     })
     .catch(function(e) { showLoadError(); });
