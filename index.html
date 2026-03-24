@@ -179,9 +179,10 @@
 var CSV_URL = 'https://raw.githubusercontent.com/rvieira-infleet/can_supported_veihcle-teltonika/main/FMX150_Supported_Vehicles_03_17_2026.CSV';
 var LS_RESOURCES = 'vrc_selected_resources';
 var PROXIES = [
-  'https://api.allorigins.win/raw?url=',
   'https://corsproxy.io/?',
-  'https://api.codetabs.com/v1/proxy?quest='
+  'https://api.allorigins.win/raw?url=',
+  'https://api.codetabs.com/v1/proxy?quest=',
+  'https://thingproxy.freeboard.io/fetch/'
 ];
 
 var sheetData = [], headers = [], resourceHeaders = [], selectedResources = [];
@@ -194,10 +195,10 @@ window.addEventListener('load', function() {
 });
 
 function tryFetchWithProxies(idx) {
-  if (idx >= PROXIES.length) { tryDirectFetch(); return; }
+  if (idx >= PROXIES.length) { showLoadError(); return; }
   var url = PROXIES[idx] + encodeURIComponent(CSV_URL);
   var msgEl = document.getElementById('loading-msg');
-  if (msgEl) msgEl.textContent = 'Tentativa ' + (idx + 1) + ' de ' + (PROXIES.length + 1) + '...';
+  if (msgEl) msgEl.textContent = 'Tentativa ' + (idx + 1) + ' de ' + PROXIES.length + '...';
   fetch(url, { cache: 'no-store' })
     .then(function(r) { if (!r.ok) throw new Error(''); return r.text(); })
     .then(function(t) {
@@ -205,13 +206,6 @@ function tryFetchWithProxies(idx) {
       parseCSV(t); onSheetLoaded();
     })
     .catch(function() { tryFetchWithProxies(idx + 1); });
-}
-
-function tryDirectFetch() {
-  fetch(CSV_URL, { cache: 'no-store' })
-    .then(function(r) { if (!r.ok) throw new Error(''); return r.text(); })
-    .then(function(t) { parseCSV(t); onSheetLoaded(); })
-    .catch(function() { showLoadError(); });
 }
 
 function onSheetLoaded() {
