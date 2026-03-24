@@ -194,10 +194,16 @@ function tryFetchWithProxies(idx) {
   fetch(CSV_URL, { cache: 'no-store' })
     .then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
     .then(function(t) {
+      console.log('CSV recebido, tamanho:', t.length, 'primeiros chars:', t.substring(0, 200));
       if (!t || t.length < 10) throw new Error('Arquivo vazio');
-      parseCSV(t); onSheetLoaded();
+      parseCSV(t);
+      console.log('Parse OK, veículos:', sheetData.length, 'headers:', headers.length);
+      onSheetLoaded();
     })
-    .catch(function(e) { showLoadError(); });
+    .catch(function(e) {
+      console.error('Erro ao carregar/parsear CSV:', e.message);
+      showLoadError();
+    });
 }
 
 function onSheetLoaded() {
