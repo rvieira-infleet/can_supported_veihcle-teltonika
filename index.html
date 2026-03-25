@@ -29,10 +29,9 @@
   button.primary:disabled { background: #334155; color: #64748b; cursor: not-allowed; }
   button.ghost { background: transparent; border: 1px solid #334155; color: #94a3b8; border-radius: 10px; padding: 11px; font-size: 0.9rem; cursor: pointer; flex: 1; }
   button.ghost:hover { border-color: #64748b; color: #e2e8f0; }
-  .status-info    { background: #1e3a5f; color: #93c5fd; font-size: 0.88rem; padding: 11px 14px; border-radius: 8px; margin-bottom: 12px; }
-  .status-error   { background: #3b0f0f; color: #fca5a5; font-size: 0.88rem; padding: 11px 14px; border-radius: 8px; margin-bottom: 12px; }
-  .status-warn    { background: #451a03; color: #fbbf24; font-size: 0.88rem; padding: 11px 14px; border-radius: 8px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
-  .status-success { background: #14532d; color: #86efac; font-size: 0.88rem; padding: 11px 14px; border-radius: 8px; margin-bottom: 12px; }
+  .status-info  { background: #1e3a5f; color: #93c5fd; font-size: 0.88rem; padding: 11px 14px; border-radius: 8px; margin-bottom: 12px; }
+  .status-error { background: #3b0f0f; color: #fca5a5; font-size: 0.88rem; padding: 11px 14px; border-radius: 8px; margin-bottom: 12px; }
+  .status-warn  { background: #451a03; color: #fbbf24; font-size: 0.88rem; padding: 11px 14px; border-radius: 8px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
   #loading-screen { text-align: center; padding: 50px 20px; }
   .big-spinner { width: 44px; height: 44px; border: 4px solid #334155; border-top-color: #3b82f6; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 16px; }
   #loading-screen h3 { color: #e2e8f0; margin-bottom: 6px; }
@@ -108,7 +107,6 @@
     <button class="settings-btn" onclick="openModal()">⚙️ Configurações</button>
   </header>
 
-  <!-- MODAL -->
   <div class="modal-overlay" id="modal">
     <div class="modal">
       <div class="modal-header">
@@ -135,14 +133,12 @@
     </div>
   </div>
 
-  <!-- LOADING -->
   <div class="card" id="loading-screen">
     <div class="big-spinner"></div>
     <h3>Carregando planilha...</h3>
-    <p id="loading-msg">Conectando ao servidor...</p>
+    <p id="loading-msg">Buscando dados...</p>
   </div>
 
-  <!-- MAIN -->
   <div id="screen-main" style="display:none">
     <div class="card">
       <h2><span class="step">1</span> Dados do CRLV</h2>
@@ -175,60 +171,43 @@
 </div>
 
 <script>
-// ── Config — atualize o CSV_URL se mudar o repositório ──
-var CSV_URL = './FMX150_Supported_Vehicles_03_17_2026.CSV';
-var LS_RESOURCES = 'vrc_selected_resources';
+var CSV_URL      = './FMX150_Supported_Vehicles_03_17_2026.CSV';
+var WORKER_URL   = 'https://vehicle-api-proxy.ronaldo-vieira.workers.dev';
+var LS_KEY       = 'vrc_selected_resources';
 
 var sheetData = [], headers = [], resourceHeaders = [], selectedResources = [];
 var lastMatches = [], lastInput = {};
 
 window.addEventListener('load', function() {
-  var saved = loadSavedResources();
+  var saved = loadSaved();
   if (saved) selectedResources = saved;
-  tryFetchWithProxies(0);
+  loadCSV();
 });
 
-function tryFetchWithProxies(idx) {
-  var msgEl = document.getElementById('loading-msg');
-  if (msgEl) msgEl.textContent = 'Buscando arquivo...';
+function loadCSV() {
   fetch(CSV_URL, { cache: 'no-store' })
     .then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
     .then(function(t) {
-      console.log('CSV recebido, tamanho:', t.length, 'primeiros chars:', t.substring(0, 200));
-      if (!t || t.length < 10) throw new Error('Arquivo vazio');
       parseCSV(t);
-      console.log('Parse OK, veículos:', sheetData.length, 'headers:', headers.length);
-      onSheetLoaded();
+      document.getElementById('loading-screen').style.display = 'none';
+      buildMakeDropdown();
+      document.getElementById('screen-main').style.display = 'block';
+      if (!selectedResources.length) { buildModalContent(); openModal(); }
     })
     .catch(function(e) {
-      console.error('Erro ao carregar/parsear CSV:', e.message);
-      showLoadError();
+      document.getElementById('loading-screen').innerHTML =
+        '<div style="text-align:center;padding:20px">' +
+        '<div style="font-size:2rem;margin-bottom:12px">⚠️</div>' +
+        '<h3 style="color:#fca5a5;margin-bottom:8px">Erro ao carregar planilha</h3>' +
+        '<p style="color:#94a3b8;font-size:0.85rem;margin-bottom:16px">' + e.message + '</p>' +
+        '<button class="primary" style="max-width:200px;margin:0 auto" onclick="loadCSV()">🔄 Tentar novamente</button>' +
+        '</div>';
     });
 }
 
-function onSheetLoaded() {
-  document.getElementById('loading-screen').style.display = 'none';
-  buildMakeDropdown();
-  document.getElementById('screen-main').style.display = 'block';
-  if (!selectedResources.length) { buildModalContent(); openModal(); }
-}
-
-function showLoadError() {
-  document.getElementById('loading-screen').innerHTML =
-    '<div style="text-align:center;padding:20px">' +
-    '<div style="font-size:2rem;margin-bottom:12px">⚠️</div>' +
-    '<h3 style="color:#fca5a5;margin-bottom:8px">Erro ao carregar planilha</h3>' +
-    '<p style="color:#94a3b8;font-size:0.85rem;margin-bottom:16px">Não foi possível conectar. Verifique sua conexão e tente novamente.</p>' +
-    '<button class="primary" style="max-width:200px;margin:0 auto" onclick="tryFetchWithProxies(0)">🔄 Tentar novamente</button>' +
-    '</div>';
-}
-
 function parseCSV(text) {
-  // Auto-detect separator: semicolon or comma
-  var sep = text.indexOf(';') !== -1 && text.indexOf(';') < text.indexOf('\n') ? ';' : ',';
-  console.log('Separador detectado:', sep);
-  var rows = [];
-  var cur = '', inQ = false, row = [];
+  var sep = (text.indexOf(';') !== -1 && text.indexOf(';') < text.indexOf('\n')) ? ';' : ',';
+  var rows = [], cur = '', inQ = false, row = [];
   for (var i = 0; i < text.length; i++) {
     var c = text[i];
     if (c === '"') { inQ = !inQ; }
@@ -239,7 +218,7 @@ function parseCSV(text) {
     } else { cur += c; }
   }
   if (cur || row.length) { row.push(cur.trim()); rows.push(row); }
-  if (rows.length < 2) throw new Error('Vazio');
+  if (rows.length < 2) throw new Error('Arquivo vazio.');
   var hi = 0;
   for (var i = 0; i < Math.min(10, rows.length); i++) {
     if (String(rows[i][3]||'').trim().toLowerCase() === 'model') { hi = i; break; }
@@ -267,7 +246,7 @@ function closeModal() { document.getElementById('modal').classList.remove('open'
 
 function buildModalContent() {
   document.getElementById('modal-sheet-status').innerHTML = sheetData.length
-    ? '<div class="sheet-info"><span class="si-icon">✅</span><div><div class="si-text">Planilha carregada do GitHub</div><div class="si-meta">' + sheetData.length + ' veículos · ' + resourceHeaders.length + ' recursos</div></div></div><p style="font-size:0.78rem;color:#475569;margin-top:8px">Atualizada automaticamente quando o arquivo no GitHub for alterado.</p>'
+    ? '<div class="sheet-info"><span class="si-icon">✅</span><div><div class="si-text">Planilha carregada</div><div class="si-meta">' + sheetData.length + ' veículos · ' + resourceHeaders.length + ' recursos</div></div></div>'
     : '<div class="status-error">Planilha não carregada.</div>';
   if (resourceHeaders.length) {
     document.getElementById('modal-res-section').style.display = 'block';
@@ -301,13 +280,13 @@ function saveSettings() {
   var sel = Array.from(document.querySelectorAll('.rtag.on')).map(function(t){return t.dataset.r;});
   if (!sel.length) { alert('Selecione pelo menos um recurso.'); return; }
   selectedResources = sel;
-  persistResources(sel);
+  persistSaved(sel);
   closeModal();
 }
 
-function persistResources(list) { try { localStorage.setItem(LS_RESOURCES, JSON.stringify(list)); } catch(e) {} }
-function loadSavedResources()   { try { var v=localStorage.getItem(LS_RESOURCES); return v?JSON.parse(v):null; } catch(e){return null;} }
-function norm(s) { return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim(); }
+function persistSaved(list) { try { localStorage.setItem(LS_KEY, JSON.stringify(list)); } catch(e) {} }
+function loadSaved()        { try { var v=localStorage.getItem(LS_KEY); return v?JSON.parse(v):null; } catch(e){return null;} }
+function norm(s)            { return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim(); }
 
 function checkYearMatch(yearFab, rowYear) {
   if (!yearFab||!rowYear) return true;
@@ -320,22 +299,28 @@ function checkYearMatch(yearFab, rowYear) {
 }
 
 function searchWithAI() {
-  var make=document.getElementById('crlv-make').value.trim();
-  var model=document.getElementById('crlv-model').value.trim();
-  var yearFab=document.getElementById('crlv-year-fab').value.trim();
-  var yearMod=document.getElementById('crlv-year-mod').value.trim();
-  if (!make&&!model) { var el=document.getElementById('search-status'); el.className='status-error'; el.innerHTML='Preencha ao menos a Marca ou o Modelo.'; el.style.display='block'; return; }
+  var make    = document.getElementById('crlv-make').value.trim();
+  var model   = document.getElementById('crlv-model').value.trim();
+  var yearFab = document.getElementById('crlv-year-fab').value.trim();
+  var yearMod = document.getElementById('crlv-year-mod').value.trim();
+  if (!make&&!model) { showSearchErr('Preencha ao menos a Marca ou o Modelo.'); return; }
   if (!selectedResources.length) { openModal(); return; }
-  lastInput={make:make,model:model,yearFab:yearFab,yearMod:yearMod};
-  var vehicleList=sheetData.map(function(r,i){return i+'|'+(r[headers[2]]||'')+'|'+(r[headers[3]]||'')+'|'+(r[headers[4]]||'');}).join('\n');
-  var btn=document.getElementById('btn-search');
+  lastInput = {make:make,model:model,yearFab:yearFab,yearMod:yearMod};
+
+  var vehicleList = sheetData.map(function(r,i){
+    return i+'|'+(r[headers[2]]||'')+'|'+(r[headers[3]]||'')+'|'+(r[headers[4]]||'');
+  }).join('\n');
+
+  var btn = document.getElementById('btn-search');
   btn.disabled=true; btn.textContent='⏳ Consultando IA...';
   document.getElementById('search-status').style.display='none';
-  var rd=document.getElementById('card-results');
+
+  var rd = document.getElementById('card-results');
   rd.style.display='block';
   rd.innerHTML='<div class="card"><div class="ai-thinking"><div class="spinner"></div><p><b>IA analisando seu veículo...</b>Comparando dados do CRLV com a base de veículos suportados</p></div></div>';
   rd.scrollIntoView({behavior:'smooth'});
-  var prompt='Você é um especialista em identificação de veículos. O usuário possui um veículo com os seguintes dados do CRLV brasileiro:\n'
+
+  var prompt = 'Você é um especialista em identificação de veículos. Dados do CRLV brasileiro:\n'
     +'- Marca: '+(make||'não informada')+'\n'
     +'- Modelo/Versão: '+(model||'não informado')+'\n'
     +'- Ano Fabricação: '+(yearFab||'não informado')+'\n'
@@ -345,20 +330,33 @@ function searchWithAI() {
     +'Retorne APENAS matches com confidence "high". Se não houver, retorne array vazio.\n'
     +'Responda APENAS com JSON válido:\n'
     +'{"matches":[{"index":0,"confidence":"high","reason":"motivo em português"}]}';
-  fetch('https://api.anthropic.com/v1/messages',{
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:prompt}]})
+
+  fetch(WORKER_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 1000,
+      messages: [{ role: 'user', content: prompt }]
+    })
   })
-  .then(function(r){return r.json();})
-  .then(function(data){
-    var text=data.content&&data.content[0]?data.content[0].text:'{"matches":[]}';
-    var parsed=JSON.parse(text.replace(/```json/g,'').replace(/```/g,'').trim());
-    lastMatches=parsed.matches||[];
-    if(!lastMatches.length) renderNotFound(make,model); else renderMatchCards(lastMatches);
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    var text = data.content&&data.content[0] ? data.content[0].text : '{"matches":[]}';
+    var parsed = JSON.parse(text.replace(/```json/g,'').replace(/```/g,'').trim());
+    lastMatches = parsed.matches||[];
+    if (!lastMatches.length) renderNotFound(make,model);
+    else renderMatchCards(lastMatches);
   })
-  .catch(function(err){ rd.innerHTML='<div class="card"><div class="status-error">❌ Erro: '+err.message+'</div></div>'; })
-  .finally(function(){ btn.disabled=false; btn.textContent='🤖 Buscar com IA'; });
+  .catch(function(e) {
+    rd.innerHTML='<div class="card"><div class="status-error">❌ Erro: '+e.message+'</div></div>';
+  })
+  .finally(function() { btn.disabled=false; btn.textContent='🤖 Buscar com IA'; });
+}
+
+function showSearchErr(msg) {
+  var el=document.getElementById('search-status');
+  el.className='status-error'; el.innerHTML=msg; el.style.display='block';
 }
 
 function renderNotFound(make,model) {
@@ -399,8 +397,8 @@ function pickMatch(idx) {
     if(yes) yc++; else nc++;
     itemsHtml+='<div class="result-item '+(yes?'yes':'no')+'"><span class="icon">'+(yes?'✅':'❌')+'</span><span class="rname">'+res+'</span></div>';
   });
-  var badge=isExact?'<span class="result-badge-exact">EXATO</span>':'<span class="result-badge-similar">SIMILAR</span>';
-  var banner=isExact?'':'<div class="status-warn">⚠️ <span><b>Resultado SIMILAR</b> — Ano do CRLV ('+lastInput.yearFab+') difere do intervalo na base ('+rowYear+'). Os recursos podem variar.</span></div>';
+  var badge  = isExact?'<span class="result-badge-exact">EXATO</span>':'<span class="result-badge-similar">SIMILAR</span>';
+  var banner = isExact?'':'<div class="status-warn">⚠️ <span><b>Resultado SIMILAR</b> — Ano do CRLV ('+lastInput.yearFab+') difere do intervalo na base ('+rowYear+'). Os recursos podem variar.</span></div>';
   document.getElementById('card-results').innerHTML='<div class="card">'
     +'<h2><span class="step">3</span> Resultado '+badge+'</h2>'+banner
     +'<div class="vehicle-found"><strong>'+(row[headers[2]]||'—')+'</strong> '+(row[headers[3]]||'—')+' &nbsp;|&nbsp; Ano base: <strong>'+(rowYear||'—')+'</strong></div>'
