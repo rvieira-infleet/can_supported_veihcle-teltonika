@@ -342,7 +342,9 @@ function searchWithAI() {
   })
   .then(function(r) { return r.json(); })
   .then(function(data) {
+    console.log('Resposta do Worker:', JSON.stringify(data).substring(0, 500));
     var text = data.content&&data.content[0] ? data.content[0].text : '{"matches":[]}';
+    console.log('Texto da IA:', text.substring(0, 300));
     var parsed = JSON.parse(text.replace(/```json/g,'').replace(/```/g,'').trim());
     lastMatches = parsed.matches||[];
     if (!lastMatches.length) renderNotFound(make,model);
