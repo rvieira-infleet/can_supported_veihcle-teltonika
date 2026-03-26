@@ -66,9 +66,8 @@
   .ai-thinking p { color: #94a3b8; font-size: 0.9rem; }
   .ai-thinking p b { color: #e2e8f0; display: block; margin-bottom: 3px; }
   @keyframes spin { to { transform: rotate(360deg); } }
-  .match-card { border: 2px solid #334155; border-radius: 12px; padding: 16px 18px; margin-bottom: 10px; cursor: pointer; transition: all 0.2s; background: #0f172a; }
-  .match-card:hover { border-color: #3b82f6; background: #172554; }
-  .match-card::after { content: '👆 Clique para ver os recursos'; display: block; margin-top: 10px; font-size: 0.75rem; color: #3b82f6; text-align: right; }
+  .match-card { border: 2px solid #334155; border-radius: 12px; padding: 16px 18px; margin-bottom: 10px; background: #0f172a; }
+  .match-card .mc-resources { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; margin-top: 12px; }
   .mc-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
   .mc-model { font-weight: 700; color: #f1f5f9; font-size: 0.95rem; }
   .mc-badge.high { background: #14532d; color: #4ade80; font-size: 0.72rem; font-weight: 700; padding: 3px 10px; border-radius: 20px; }
@@ -453,19 +452,59 @@ function renderNotFound(make,model) {
 }
 
 function renderMatchCards(matches) {
-  var html='<div class="card"><h2><span class="step">2</span> Sugestões da IA</h2>'
-    +'<div class="status-info" style="margin-bottom:16px">📋 CRLV: <b>'+lastInput.make+'</b> '+lastInput.model
-    +' &nbsp;·&nbsp; Fab: '+lastInput.yearFab+' / Mod: '+lastInput.yearMod+'</div>';
-  matches.forEach(function(m) {
-    var row=sheetData[m.index]; if(!row) return;
-    html+='<div class="match-card" onclick="pickMatch('+m.index+')">'
-      +'<div class="mc-header"><span class="mc-model">'+(row[headers[2]]||'')+' '+(row[headers[3]]||'')+'</span>'
-      +'<span class="mc-badge high">✅ Alta confiança</span></div>'
-      +'<div class="mc-meta">Ano: '+(row[headers[4]]||'—')+' &nbsp;·&nbsp; '+(row[headers[5]]||'')+' &nbsp;·&nbsp; '+(row[headers[6]]||'')+'</div>'
-      +'<div class="mc-reason">💬 '+(m.reason||'')+'</div></div>';
+  var html = '<div class="card"><h2><span class="step">2</span> Resultado</h2>'
+    + '<div class="status-info" style="margin-bottom:16px">📋 CRLV: <b>' + lastInput.make + '</b> ' + lastInput.model
+    + ' &nbsp;·&nbsp; Fab: ' + lastInput.yearFab + ' / Mod: ' + lastInput.yearMod + '</div>';
+
+  matches.forEach(function(m, idx) {
+    var row = sheetData[m.index]; if (!row) return;
+    var rowYear = (row[headers[4]] || '').trim();
+    var isExact = checkYearMatch(lastInput.yearFab, rowYear);
+    var isBest  = idx === 0;
+
+    var yearBadge = isExact
+      ? '<span class="result-badge-exact">EXATO</span>'
+      : '<span class="result-badge-similar">SIMILAR</span>';
+
+    var bestBanner = '<div style="display:inline-flex;align-items:center;gap:6px;background:#1e293b;border:1px solid #334155;border-radius:6px;padding:4px 10px;margin-bottom:10px;font-size:0.78rem;color:#94a3b8">'
+      + '<span style="background:#3b82f6;color:#fff;border-radius:50%;width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:0.75rem">' + (idx+1) + '</span>'
+      + (isBest ? 'Resultado mais provável' : 'Resultado alternativo')
+      + '</div><br>';
+
+    var similarWarn = !isExact
+      ? '<div class="status-warn" style="margin:8px 0;font-size:0.8rem">⚠️ Ano do CRLV (' + lastInput.yearFab + ') difere do intervalo na base (' + rowYear + ')</div>'
+      : '';
+
+    // Build resources
+    var yc = 0, nc = 0, resHtml = '';
+    selectedResources.forEach(function(res) {
+      var val = (row[res] || '').trim().toLowerCase();
+      var yes = ['+','1','sim','s','yes','y','true','x'].indexOf(val) !== -1;
+      if (yes) yc++; else nc++;
+      resHtml += '<div class="result-item ' + (yes?'yes':'no') + '">'
+        + '<span class="icon">' + (yes?'✅':'❌') + '</span>'
+        + '<span class="rname">' + getLabel(res) + '</span></div>';
+    });
+
+    html += '<div class="match-card">'
+      + bestBanner
+      + '<div class="mc-header">'
+      + '<span class="mc-model">' + (row[headers[2]]||'') + ' ' + (row[headers[3]]||'') + ' ' + yearBadge + '</span>'
+      + '<span class="mc-badge high">✅ Alta confiança</span>'
+      + '</div>'
+      + '<div class="mc-meta">Ano base: ' + (rowYear||'—') + ' &nbsp;·&nbsp; ' + (row[headers[5]]||'') + ' &nbsp;·&nbsp; ' + (row[headers[6]]||'') + '</div>'
+      + '<div class="mc-reason">💬 ' + (m.reason||'') + '</div>'
+      + similarWarn
+      + '<div style="display:flex;gap:10px;margin:10px 0 6px">'
+      + '<div class="sum-box yes" style="flex:1;background:#0f172a;border-radius:8px;padding:8px;text-align:center"><div class="num" style="font-size:1.2rem;font-weight:700;color:#4ade80">' + yc + '</div><div class="lbl" style="font-size:0.72rem;color:#64748b">Disponíveis</div></div>'
+      + '<div class="sum-box no"  style="flex:1;background:#0f172a;border-radius:8px;padding:8px;text-align:center"><div class="num" style="font-size:1.2rem;font-weight:700;color:#f87171">' + nc + '</div><div class="lbl" style="font-size:0.72rem;color:#64748b">Indisponíveis</div></div>'
+      + '</div>'
+      + '<div class="mc-resources results-grid">' + resHtml + '</div>'
+      + '</div>';
   });
-  html+='</div>';
-  document.getElementById('card-results').innerHTML=html;
+
+  html += '<br><button class="primary" style="background:#334155" onclick="resetSearch()">🔁 Nova Consulta</button></div>';
+  document.getElementById('card-results').innerHTML = html;
   document.getElementById('card-results').scrollIntoView({behavior:'smooth'});
 }
 
@@ -493,6 +532,8 @@ function pickMatch(idx) {
 }
 
 function backToSuggestions() { if(lastMatches.length) renderMatchCards(lastMatches); else searchWithAI(); }
+
+function pickMatch(idx) { renderMatchCards(lastMatches); }
 
 function resetSearch() {
   document.getElementById('crlv-make').value='';
