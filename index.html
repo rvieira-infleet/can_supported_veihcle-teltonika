@@ -307,8 +307,18 @@ function searchWithAI() {
   if (!selectedResources.length) { openModal(); return; }
   lastInput = {make:make,model:model,yearFab:yearFab,yearMod:yearMod};
 
-  var vehicleList = sheetData.map(function(r,i){
-    return i+'|'+(r[headers[2]]||'')+'|'+(r[headers[3]]||'')+'|'+(r[headers[4]]||'');
+  // Pre-filter candidates by manufacturer to reduce prompt size
+  var colM = headers[2], colV = headers[3], colY = headers[4];
+  var nmake = norm(make), nmodel = norm(model);
+  var candidates = sheetData.filter(function(r) {
+    return norm(r[colM]||'').indexOf(nmake) !== -1 ||
+           nmake.indexOf(norm(r[colM]||'')) !== -1;
+  });
+  if (!candidates.length) candidates = sheetData; // fallback to all if no match
+
+  var vehicleList = candidates.map(function(r) {
+    var idx = sheetData.indexOf(r);
+    return idx+'|'+(r[colM]||'')+'|'+(r[colV]||'')+'|'+(r[colY]||'');
   }).join('\n');
 
   var btn = document.getElementById('btn-search');
