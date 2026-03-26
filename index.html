@@ -352,10 +352,12 @@ function searchWithAI() {
   })
   .then(function(r) { return r.json(); })
   .then(function(data) {
-    console.log('Resposta do Worker:', JSON.stringify(data).substring(0, 500));
-    var text = data.text || '{"matches":[]}';
-    console.log('Texto da IA:', text.substring(0, 300));
-    var parsed = JSON.parse(text.replace(/```json/g,'').replace(/```/g,'').trim());
+    console.log('Resposta completa:', JSON.stringify(data).substring(0, 1000));
+    var text = data.candidates&&data.candidates[0]&&data.candidates[0].content&&data.candidates[0].content.parts&&data.candidates[0].content.parts[0] ? data.candidates[0].content.parts[0].text : '{"matches":[]}';
+    console.log('Texto extraído:', text.substring(0, 500));
+    var clean = text.replace(/```json/g,'').replace(/```/g,'').trim();
+    var parsed;
+    try { parsed = JSON.parse(clean); } catch(e) { console.error('Erro parse JSON:', e.message, clean); parsed = {matches:[]}; }
     lastMatches = parsed.matches||[];
     if (!lastMatches.length) renderNotFound(make,model);
     else renderMatchCards(lastMatches);
