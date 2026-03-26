@@ -330,15 +330,19 @@ function searchWithAI() {
   rd.innerHTML='<div class="card"><div class="ai-thinking"><div class="spinner"></div><p><b>IA analisando seu veículo...</b>Comparando dados do CRLV com a base de veículos suportados</p></div></div>';
   rd.scrollIntoView({behavior:'smooth'});
 
-  var prompt = 'Você é um especialista em identificação de veículos. Dados do CRLV brasileiro:\n'
+  var prompt = 'Você é um especialista em identificação de veículos brasileiros. Dados do CRLV:\n'
     +'- Marca: '+(make||'não informada')+'\n'
     +'- Modelo/Versão: '+(model||'não informado')+'\n'
     +'- Ano Fabricação: '+(yearFab||'não informado')+'\n'
     +'- Ano Modelo: '+(yearMod||'não informado')+'\n\n'
-    +'Lista de veículos (INDEX|FABRICANTE|MODELO|ANO):\n\n'+vehicleList+'\n\n'
-    +'Identifique correspondências de ALTA confiança. Nomes do CRLV podem diferir dos internacionais.\n'
-    +'Retorne APENAS matches com confidence "high". Se não houver, retorne array vazio.\n'
-    +'Responda APENAS com JSON válido:\n'
+    +'Lista de veículos disponíveis (INDEX|FABRICANTE|MODELO|ANO):\n\n'+vehicleList+'\n\n'
+    +'INSTRUÇÕES:\n'
+    +'1. Encontre os veículos mais similares ao do CRLV\n'
+    +'2. Nomes brasileiros diferem dos internacionais (ex: "KA SE 1.0" pode ser "KA Sedan LATAM", "KA Hatch", etc)\n'
+    +'3. Retorne os 3 melhores candidatos, mesmo que a correspondência não seja perfeita\n'
+    +'4. SEMPRE retorne pelo menos 1 resultado se houver qualquer veículo similar\n'
+    +'5. Use confidence "high" para correspondências claras, "medium" para prováveis\n\n'
+    +'Responda APENAS com JSON válido, sem texto adicional:\n'
     +'{"matches":[{"index":0,"confidence":"high","reason":"motivo em português"}]}';
 
   fetch(WORKER_URL, {
