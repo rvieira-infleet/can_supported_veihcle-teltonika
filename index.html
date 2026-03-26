@@ -334,16 +334,12 @@ function searchWithAI() {
   fetch(WORKER_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 1000,
-      messages: [{ role: 'user', content: prompt }]
-    })
+    body: JSON.stringify({ prompt: prompt })
   })
   .then(function(r) { return r.json(); })
   .then(function(data) {
     console.log('Resposta do Worker:', JSON.stringify(data).substring(0, 500));
-    var text = data.content&&data.content[0] ? data.content[0].text : '{"matches":[]}';
+    var text = data.text || '{"matches":[]}';
     console.log('Texto da IA:', text.substring(0, 300));
     var parsed = JSON.parse(text.replace(/```json/g,'').replace(/```/g,'').trim());
     lastMatches = parsed.matches||[];
