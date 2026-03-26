@@ -122,13 +122,14 @@
         <input class="res-search" id="modal-res-search" placeholder="🔍 Filtrar recursos..." oninput="filterModalTags()">
         <div class="res-actions">
           <button class="btn-xs" onclick="modalSelectAll()">Selecionar todos</button>
-          <button class="btn-xs" onclick="modalClearAll()">Limpar</button>
+          <button class="btn-xs" onclick="modalClearAll()">Limpar seleção</button>
+          <button class="btn-xs" onclick="modalResetDefault()">Restaurar padrão</button>
         </div>
         <div class="tag-grid" id="modal-tag-grid"></div>
       </div>
       <div class="modal-actions">
         <button class="ghost" onclick="closeModal()">Fechar</button>
-        <button class="primary" id="modal-save-btn" style="flex:2;display:none" onclick="saveSettings()">💾 Salvar Recursos</button>
+        <button class="primary" id="modal-save-btn" style="flex:2;display:none" onclick="saveSettings()">💾 Salvar</button>
       </div>
     </div>
   </div>
@@ -175,12 +176,25 @@ var CSV_URL      = './FMX150_Supported_Vehicles_03_17_2026.CSV';
 var GROQ_API_KEY = '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';
 var LS_KEY       = 'vrc_selected_resources';
 
+// Tradução dos nomes dos recursos
+var RESOURCE_LABELS = {
+  'Total Mileage (km)': 'Quilometragem',
+  'Total Mileage':      'Quilometragem',
+  'Engine Speed':       'RPM do Motor',
+  'Throttle position':  'Posição do Acelerador'
+};
+
+// Recursos selecionados por padrão (nomes originais da planilha)
+var DEFAULT_RESOURCES = ['Total Mileage (km)', 'Engine Speed', 'Throttle position'];
+
+function getLabel(name) { return RESOURCE_LABELS[name] || name; }
+
 var sheetData = [], headers = [], resourceHeaders = [], selectedResources = [];
 var lastMatches = [], lastInput = {};
 
 window.addEventListener('load', function() {
   var saved = loadSaved();
-  if (saved) selectedResources = saved;
+  selectedResources = saved && saved.length ? saved : DEFAULT_RESOURCES.slice();
   loadCSV();
 });
 
@@ -192,7 +206,6 @@ function loadCSV() {
       document.getElementById('loading-screen').style.display = 'none';
       buildMakeDropdown();
       document.getElementById('screen-main').style.display = 'block';
-      if (!selectedResources.length) { buildModalContent(); openModal(); }
     })
     .catch(function(e) {
       document.getElementById('loading-screen').innerHTML =
@@ -246,7 +259,7 @@ function closeModal() { document.getElementById('modal').classList.remove('open'
 
 function buildModalContent() {
   document.getElementById('modal-sheet-status').innerHTML = sheetData.length
-    ? '<div class="sheet-info"><span class="si-icon">✅</span><div><div class="si-text">Planilha carregada</div><div class="si-meta">' + sheetData.length + ' veículos · ' + resourceHeaders.length + ' recursos</div></div></div>'
+    ? '<div class="sheet-info"><span class="si-icon">✅</span><div><div class="si-text">Planilha carregada com sucesso</div><div class="si-meta">' + sheetData.length + ' veículos · ' + resourceHeaders.length + ' recursos disponíveis</div></div></div>'
     : '<div class="status-error">Planilha não carregada.</div>';
   if (resourceHeaders.length) {
     document.getElementById('modal-res-section').style.display = 'block';
@@ -261,7 +274,8 @@ function buildModalTags() {
   resourceHeaders.forEach(function(h) {
     var t = document.createElement('div');
     t.className = 'rtag' + (selectedResources.indexOf(h)!==-1?' on':'');
-    t.textContent = h; t.dataset.r = h;
+    t.textContent = getLabel(h);
+    t.dataset.r = h;
     t.onclick = function() { t.classList.toggle('on'); updateModalCount(); };
     grid.appendChild(t);
   });
@@ -270,11 +284,20 @@ function buildModalTags() {
 
 function filterModalTags() {
   var q = norm(document.getElementById('modal-res-search').value);
-  document.querySelectorAll('.rtag').forEach(function(t) { t.style.display=norm(t.textContent).indexOf(q)!==-1?'':'none'; });
+  document.querySelectorAll('.rtag').forEach(function(t) {
+    t.style.display = norm(t.textContent).indexOf(q)!==-1 ? '' : 'none';
+  });
 }
-function modalSelectAll() { document.querySelectorAll('.rtag').forEach(function(t){if(t.style.display!=='none')t.classList.add('on');}); updateModalCount(); }
-function modalClearAll()  { document.querySelectorAll('.rtag').forEach(function(t){t.classList.remove('on');}); updateModalCount(); }
-function updateModalCount() { document.getElementById('modal-sel-count').textContent=document.querySelectorAll('.rtag.on').length; }
+function modalSelectAll()     { document.querySelectorAll('.rtag').forEach(function(t){if(t.style.display!=='none')t.classList.add('on');}); updateModalCount(); }
+function modalClearAll()      { document.querySelectorAll('.rtag').forEach(function(t){t.classList.remove('on');}); updateModalCount(); }
+function modalResetDefault()  {
+  document.querySelectorAll('.rtag').forEach(function(t){
+    if (DEFAULT_RESOURCES.indexOf(t.dataset.r)!==-1) t.classList.add('on');
+    else t.classList.remove('on');
+  });
+  updateModalCount();
+}
+function updateModalCount()   { document.getElementById('modal-sel-count').textContent=document.querySelectorAll('.rtag.on').length; }
 
 function saveSettings() {
   var sel = Array.from(document.querySelectorAll('.rtag.on')).map(function(t){return t.dataset.r;});
@@ -304,21 +327,18 @@ function searchWithAI() {
   var yearFab = document.getElementById('crlv-year-fab').value.trim();
   var yearMod = document.getElementById('crlv-year-mod').value.trim();
   if (!make&&!model) { showSearchErr('Preencha ao menos a Marca ou o Modelo.'); return; }
-  if (!selectedResources.length) { openModal(); return; }
   lastInput = {make:make,model:model,yearFab:yearFab,yearMod:yearMod};
 
-  // Pre-filter candidates by manufacturer to reduce prompt size
-  var colM = headers[2], colV = headers[3], colY = headers[4];
-  var nmake = norm(make), nmodel = norm(model);
+  var colM = headers[2], colV = headers[3];
+  var nmake = norm(make);
   var candidates = sheetData.filter(function(r) {
-    return norm(r[colM]||'').indexOf(nmake) !== -1 ||
-           nmake.indexOf(norm(r[colM]||'')) !== -1;
+    return norm(r[colM]||'').indexOf(nmake)!==-1 || nmake.indexOf(norm(r[colM]||''))!==-1;
   });
-  if (!candidates.length) candidates = sheetData; // fallback to all if no match
+  if (!candidates.length) candidates = sheetData;
 
   var vehicleList = candidates.map(function(r) {
     var idx = sheetData.indexOf(r);
-    return idx+'|'+(r[colM]||'')+'|'+(r[colV]||'')+'|'+(r[colY]||'');
+    return idx+'|'+(r[colM]||'')+'|'+(r[headers[3]]||'')+'|'+(r[headers[4]]||'');
   }).join('\n');
 
   var btn = document.getElementById('btn-search');
@@ -338,8 +358,8 @@ function searchWithAI() {
     +'Lista de veículos disponíveis (INDEX|FABRICANTE|MODELO|ANO):\n\n'+vehicleList+'\n\n'
     +'INSTRUÇÕES:\n'
     +'1. Encontre os veículos mais similares ao do CRLV\n'
-    +'2. Nomes brasileiros diferem dos internacionais (ex: "KA SE 1.0" pode ser "KA Sedan LATAM", "KA Hatch", etc)\n'
-    +'3. Retorne os 3 melhores candidatos, mesmo que a correspondência não seja perfeita\n'
+    +'2. Nomes brasileiros diferem dos internacionais (ex: "KA SE 1.0" pode ser "KA Sedan LATAM")\n'
+    +'3. Retorne os melhores candidatos, mesmo que a correspondência não seja perfeita\n'
     +'4. SEMPRE retorne pelo menos 1 resultado se houver qualquer veículo similar\n'
     +'5. Use confidence "high" para correspondências claras, "medium" para prováveis\n\n'
     +'Responda APENAS com JSON válido, sem texto adicional:\n'
@@ -359,12 +379,10 @@ function searchWithAI() {
   })
   .then(function(r) { return r.json(); })
   .then(function(data) {
-    console.log('Resposta Groq:', JSON.stringify(data).substring(0, 500));
     var text = data.choices&&data.choices[0] ? data.choices[0].message.content : '{"matches":[]}';
-    console.log('Texto extraído:', text.substring(0, 300));
     var clean = text.replace(/```json/g,'').replace(/```/g,'').trim();
     var parsed;
-    try { parsed = JSON.parse(clean); } catch(e) { console.error('Erro parse:', e.message); parsed = {matches:[]}; }
+    try { parsed = JSON.parse(clean); } catch(e) { parsed = {matches:[]}; }
     lastMatches = parsed.matches||[];
     if (!lastMatches.length) renderNotFound(make,model);
     else renderMatchCards(lastMatches);
@@ -416,7 +434,7 @@ function pickMatch(idx) {
     var val=(row[res]||'').trim().toLowerCase();
     var yes=['+','1','sim','s','yes','y','true','x'].indexOf(val)!==-1;
     if(yes) yc++; else nc++;
-    itemsHtml+='<div class="result-item '+(yes?'yes':'no')+'"><span class="icon">'+(yes?'✅':'❌')+'</span><span class="rname">'+res+'</span></div>';
+    itemsHtml+='<div class="result-item '+(yes?'yes':'no')+'"><span class="icon">'+(yes?'✅':'❌')+'</span><span class="rname">'+getLabel(res)+'</span></div>';
   });
   var badge  = isExact?'<span class="result-badge-exact">EXATO</span>':'<span class="result-badge-similar">SIMILAR</span>';
   var banner = isExact?'':'<div class="status-warn">⚠️ <span><b>Resultado SIMILAR</b> — Ano do CRLV ('+lastInput.yearFab+') difere do intervalo na base ('+rowYear+'). Os recursos podem variar.</span></div>';
