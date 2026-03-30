@@ -376,20 +376,23 @@ function searchWithAI() {
   var nmake = norm(make);
   var nmodel = norm(model);
 
-  // Filter by manufacturer first
+  // Filter by manufacturer
   var candidates = sheetData.filter(function(r) {
-    return norm(r[colM]||'').indexOf(nmake)!==-1 || nmake.indexOf(norm(r[colM]||''))!==-1;
+    return norm(r[colM]||'').indexOf(nmake) !== -1 || nmake.indexOf(norm(r[colM]||'')) !== -1;
   });
   if (!candidates.length) candidates = sheetData;
 
-  // Further filter: keep rows where model name contains any word from the search
-  var modelWords = nmodel.split(/\s+/).filter(function(w){ return w.length >= 3; });
+  // Filter by model: check if search term appears in model name OR any word of model name appears in search term
   var filtered = candidates.filter(function(r) {
     var rv = norm(r[colV]||'');
-    return modelWords.some(function(w){ return rv.indexOf(w)!==-1; });
+    if (rv.indexOf(nmodel) !== -1) return true; // "hb20s mk2 facelift" contains "hb20s"
+    if (nmodel.indexOf(rv) !== -1) return true; // reverse
+    // Check each word of the typed model against the base model name
+    var words = nmodel.split(/\s+/);
+    return words.some(function(w) { return w && rv.indexOf(w) !== -1; });
   });
 
-  // Fallback: if strict filter returns nothing, use all manufacturer candidates
+  // Fallback: send all manufacturer candidates if nothing matched
   if (!filtered.length) filtered = candidates;
 
   var vehicleList = filtered.map(function(r) {
