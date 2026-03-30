@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Consultor de Recursos de Veículos</title>
+<script src="config.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -171,9 +172,9 @@
 </div>
 
 <script>
-var CSV_URL      = './FMX150_Supported_Vehicles_03_17_2026.CSV';
-var GROQ_API_KEY = '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';
-var LS_KEY       = 'vrc_selected_resources';
+var CSV_URL = './FMX150_Supported_Vehicles_03_17_2026.CSV';
+var LS_KEY  = 'vrc_selected_resources';
+// GROQ_API_KEY is loaded from config.js
 
 // Tradução dos nomes dos recursos
 var RESOURCE_LABELS = {
