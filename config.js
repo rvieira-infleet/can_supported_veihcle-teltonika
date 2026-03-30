@@ -1,0 +1,1 @@
+var GROQ_API_KEY = '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';
