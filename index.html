@@ -374,14 +374,27 @@ function searchWithAI() {
 
   var colM = headers[2], colV = headers[3];
   var nmake = norm(make);
+  var nmodel = norm(model);
+
+  // Filter by manufacturer first
   var candidates = sheetData.filter(function(r) {
     return norm(r[colM]||'').indexOf(nmake)!==-1 || nmake.indexOf(norm(r[colM]||''))!==-1;
   });
   if (!candidates.length) candidates = sheetData;
 
-  var vehicleList = candidates.map(function(r) {
+  // Further filter: keep rows where model name contains any word from the search
+  var modelWords = nmodel.split(/\s+/).filter(function(w){ return w.length >= 3; });
+  var filtered = candidates.filter(function(r) {
+    var rv = norm(r[colV]||'');
+    return modelWords.some(function(w){ return rv.indexOf(w)!==-1; });
+  });
+
+  // Fallback: if strict filter returns nothing, use all manufacturer candidates
+  if (!filtered.length) filtered = candidates;
+
+  var vehicleList = filtered.map(function(r) {
     var idx = sheetData.indexOf(r);
-    return idx+'|'+(r[colM]||'')+'|'+(r[headers[3]]||'')+'|'+(r[headers[4]]||'');
+    return idx+'|'+(r[colM]||'')+'|'+(r[colV]||'')+'|'+(r[headers[4]]||'');
   }).join('\n');
 
   var btn = document.getElementById('btn-search');
@@ -393,20 +406,23 @@ function searchWithAI() {
   rd.innerHTML='<div class="card"><div class="ai-thinking"><div class="spinner"></div><p><b>IA analisando seu veículo...</b>Comparando dados do CRLV com a base de veículos suportados</p></div></div>';
   rd.scrollIntoView({behavior:'smooth'});
 
-  var prompt = 'Você é um especialista em identificação de veículos brasileiros. Dados do CRLV:\n'
+  var prompt = 'Você é um especialista em identificação de veículos brasileiros. Ao fazer correspondências, baseie-se APENAS em fontes confiáveis como: site oficial do fabricante (ex: hyundai.com.br, volkswagen.com.br), Tabela FIPE (fipe.org.br), Tabela KBB Brasil, revistas especializadas (AutoEsporte, Quatro Rodas, Car and Driver Brasil) e registros oficiais do DENATRAN/SENATRAN.\n\n'
+    +'Dados do CRLV do usuário:\n'
     +'- Marca: '+(make||'não informada')+'\n'
     +'- Modelo/Versão: '+(model||'não informado')+'\n'
     +'- Ano Fabricação: '+(yearFab||'não informado')+'\n'
     +'- Ano Modelo: '+(yearMod||'não informado')+'\n\n'
-    +'Lista de veículos disponíveis (INDEX|FABRICANTE|MODELO|ANO):\n\n'+vehicleList+'\n\n'
-    +'INSTRUÇÕES:\n'
-    +'1. Encontre os veículos mais similares ao do CRLV\n'
-    +'2. Nomes brasileiros diferem dos internacionais (ex: "KA SE 1.0" pode ser "KA Sedan LATAM")\n'
-    +'3. Retorne os melhores candidatos, mesmo que a correspondência não seja perfeita\n'
-    +'4. SEMPRE retorne pelo menos 1 resultado se houver qualquer veículo similar\n'
-    +'5. Use confidence "high" para correspondências claras, "medium" para prováveis\n\n'
+    +'Lista de veículos disponíveis na base (INDEX|FABRICANTE|MODELO|ANO):\n\n'+vehicleList+'\n\n'
+    +'TAREFA:\n'
+    +'1. Consulte as fontes acima para confirmar como o veículo do CRLV é oficialmente denominado pelo fabricante no Brasil\n'
+    +'2. O nome no CRLV é sempre simplificado (ex: "HB20S" corresponde a "HB20s mk2 facelift (BR2)" pois HB20S é a versão sedã do HB20, confirmado no site da Hyundai Brasil)\n'
+    +'3. Procure correspondências parciais: se o nome do CRLV está CONTIDO no nome da base, é uma forte correspondência\n'
+    +'4. Considere o ano para refinar a escolha entre versões diferentes do mesmo modelo\n'
+    +'5. SEMPRE retorne pelo menos 1 resultado se houver qualquer veículo com nome similar na lista\n'
+    +'6. Confidence "high" = confirmado em fonte confiável, "medium" = provável mas sem confirmação direta\n'
+    +'7. No campo "reason", cite a fonte que embasou a decisão (ex: "Confirmado no site Hyundai Brasil: HB20S é a versão sedã do HB20")\n\n'
     +'Responda APENAS com JSON válido, sem texto adicional:\n'
-    +'{"matches":[{"index":0,"confidence":"high","reason":"motivo em português"}]}';
+    +'{"matches":[{"index":0,"confidence":"high","reason":"motivo detalhado com fonte em português"}]}';
 
   fetch('https://api.groq.com/openai/v1/chat/completions', {
     method: 'POST',
