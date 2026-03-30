@@ -172,7 +172,7 @@
 
 <script>
 var CSV_URL      = './FMX150_Supported_Vehicles_03_17_2026.CSV';
-var GROQ_API_KEY = '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';
+var GROQ_API_KEY = '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';
 var LS_KEY       = 'vrc_selected_resources';
 
 // Tradução dos nomes dos recursos
@@ -420,13 +420,13 @@ function searchWithAI() {
     +'- Ano Modelo: '+(yearMod||'não informado')+'\n\n'
     +'Lista de veículos disponíveis na base (INDEX|FABRICANTE|MODELO|ANO):\n\n'+vehicleList+'\n\n'
     +'TAREFA:\n'
-    +'1. Consulte as fontes acima para confirmar como o veículo do CRLV é oficialmente denominado pelo fabricante no Brasil\n'
-    +'2. O nome no CRLV é sempre simplificado (ex: "HB20S" corresponde a "HB20s mk2 facelift (BR2)" pois HB20S é a versão sedã do HB20, confirmado no site da Hyundai Brasil)\n'
-    +'3. Procure correspondências parciais: se o nome do CRLV está CONTIDO no nome da base, é uma forte correspondência\n'
-    +'4. Considere o ano para refinar a escolha entre versões diferentes do mesmo modelo\n'
-    +'5. SEMPRE retorne pelo menos 1 resultado se houver qualquer veículo com nome similar na lista\n'
-    +'6. Confidence "high" = confirmado em fonte confiável, "medium" = provável mas sem confirmação direta\n'
-    +'7. No campo "reason", cite a fonte que embasou a decisão (ex: "Confirmado no site Hyundai Brasil: HB20S é a versão sedã do HB20")\n\n'
+    +'1. Identifique TODAS as versões do modelo que correspondem ao veículo do CRLV, independente do ano\n'
+    +'2. Retorne TODAS as linhas cujo nome contenha o modelo buscado (ex: para "HB20" retorne todas as linhas com "HB20" no nome)\n'
+    +'3. NÃO filtre por ano — retorne todas as versões e deixe o sistema determinar qual é a mais próxima pelo ano\n'
+    +'4. O nome no CRLV é simplificado (ex: "HB20" corresponde a "HB20s", "HB20s mk2 facelift (BR2)", etc)\n'
+    +'5. Ordene do mais provável para o menos provável considerando similaridade do nome\n'
+    +'6. Use confidence "high" = confirmado em fonte confiável, "medium" = provável\n'
+    +'7. No campo "reason", cite a fonte que embasou a decisão\n\n'
     +'Responda APENAS com JSON válido, sem texto adicional:\n'
     +'{"matches":[{"index":0,"confidence":"high","reason":"motivo detalhado com fonte em português"}]}';
 
