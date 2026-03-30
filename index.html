@@ -395,6 +395,9 @@ function searchWithAI() {
   // Fallback: send all manufacturer candidates if nothing matched
   if (!filtered.length) filtered = candidates;
 
+  console.log('Modelo buscado:', nmodel);
+  console.log('Candidatos filtrados:', filtered.length, filtered.slice(0,5).map(function(r){ return r[colV]; }));
+
   var vehicleList = filtered.map(function(r) {
     var idx = sheetData.indexOf(r);
     return idx+'|'+(r[colM]||'')+'|'+(r[colV]||'')+'|'+(r[headers[4]]||'');
@@ -441,7 +444,10 @@ function searchWithAI() {
   })
   .then(function(r) { return r.json(); })
   .then(function(data) {
+    console.log('Groq status:', data.error || 'OK');
+    console.log('Groq usage:', JSON.stringify(data.usage));
     var text = data.choices&&data.choices[0] ? data.choices[0].message.content : '{"matches":[]}';
+    console.log('Groq resposta:', text.substring(0, 500));
     var clean = text.replace(/```json/g,'').replace(/```/g,'').trim();
     var parsed;
     try { parsed = JSON.parse(clean); } catch(e) { parsed = {matches:[]}; }
