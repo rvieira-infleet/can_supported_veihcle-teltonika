@@ -9,122 +9,121 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Inter', 'Segoe UI', sans-serif; background: #08244A; color: #EEF4FC; min-height: 100vh; padding: 24px 16px; }
+  body { font-family: 'Inter', 'Segoe UI', sans-serif; background: #F5F7FA; color: #08244A; min-height: 100vh; padding: 24px 16px; }
   .container { max-width: 780px; margin: 0 auto; }
 
   /* Header */
   header { margin-bottom: 28px; }
   .header-top { display: flex; justify-content: flex-end; margin-bottom: 10px; }
   .header-center { text-align: center; }
-  .beta-badge { display: inline-block; background: #1a2e4a; color: #FDE7B0; border: 1px solid #F7B50F; border-radius: 6px; padding: 3px 12px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.05em; margin-bottom: 8px; }
-  .header-center h1 { font-size: 1.5rem; font-weight: 700; color: #EEF4FC; }
-  .header-center p { color: #BAD2F3; margin-top: 6px; font-size: 0.95rem; }
-  .settings-btn { background: #0d3366; border: 1px solid #2365C4; color: #BAD2F3; border-radius: 10px; padding: 8px 14px; cursor: pointer; font-size: 0.9rem; display: flex; align-items: center; gap: 6px; transition: all 0.2s; }
-  .settings-btn:hover { border-color: #448BEE; color: #EEF4FC; }
+  .beta-badge { display: inline-block; background: #FDE7B0; color: #92400e; border: 1px solid #F7B50F; border-radius: 6px; padding: 3px 12px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.05em; margin-bottom: 8px; }
+  .header-center h1 { font-size: 1.5rem; font-weight: 700; color: #08244A; }
+  .header-center p { color: #2365C4; margin-top: 6px; font-size: 0.95rem; }
+  .settings-btn { background: #ffffff; border: 1px solid #2365C4; color: #2365C4; border-radius: 10px; padding: 8px 14px; cursor: pointer; font-size: 0.9rem; display: flex; align-items: center; gap: 6px; transition: all 0.2s; }
+  .settings-btn:hover { background: #2365C4; color: #ffffff; }
 
   /* Cards */
-  .card { background: #0d3366; border: 1px solid #2365C4; border-radius: 16px; padding: 24px; margin-bottom: 20px; }
-  .card h2 { font-size: 1rem; font-weight: 600; color: #BAD2F3; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .card { background: #ffffff; border: 1px solid #DCE8F9; border-radius: 16px; padding: 24px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(8,36,74,0.07); }
+  .card h2 { font-size: 1rem; font-weight: 600; color: #08244A; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
   .step { background: #2365C4; color: white; border-radius: 50%; width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.8rem; flex-shrink: 0; }
 
   /* Form */
   .field { margin-bottom: 14px; }
   .row2 { display: flex; gap: 12px; }
   .row2 > .field { flex: 1; }
-  label.fl { display: block; font-size: 0.82rem; color: #BAD2F3; margin-bottom: 6px; font-weight: 500; }
-  input[type="text"], select { width: 100%; background: #08244A; border: 1px solid #2365C4; border-radius: 10px; padding: 12px 14px; color: #EEF4FC; font-size: 0.95rem; outline: none; transition: border-color 0.2s; appearance: none; font-family: 'Inter', sans-serif; }
-  input:focus, select:focus { border-color: #448BEE; }
-  input::placeholder { color: #5a7fa8; }
+  label.fl { display: block; font-size: 0.82rem; color: #2365C4; margin-bottom: 6px; font-weight: 500; }
+  input[type="text"], select { width: 100%; background: #F5F7FA; border: 1px solid #BAD2F3; border-radius: 10px; padding: 12px 14px; color: #08244A; font-size: 0.95rem; outline: none; transition: border-color 0.2s; appearance: none; font-family: 'Inter', sans-serif; }
+  input:focus, select:focus { border-color: #2365C4; background: #ffffff; }
+  input::placeholder { color: #94a3b8; }
 
   /* Buttons */
   button.primary { width: 100%; padding: 13px; background: #2365C4; color: white; border: none; border-radius: 10px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: background 0.2s; font-family: 'Inter', sans-serif; }
   button.primary:hover { background: #448BEE; }
-  button.primary:disabled { background: #0d3366; color: #5a7fa8; cursor: not-allowed; }
-  button.ghost { background: transparent; border: 1px solid #2365C4; color: #BAD2F3; border-radius: 10px; padding: 11px; font-size: 0.9rem; cursor: pointer; flex: 1; font-family: 'Inter', sans-serif; }
-  button.ghost:hover { border-color: #448BEE; color: #EEF4FC; }
+  button.primary:disabled { background: #BAD2F3; color: #ffffff; cursor: not-allowed; }
+  button.ghost { background: transparent; border: 1px solid #BAD2F3; color: #2365C4; border-radius: 10px; padding: 11px; font-size: 0.9rem; cursor: pointer; flex: 1; font-family: 'Inter', sans-serif; }
+  button.ghost:hover { border-color: #2365C4; }
 
   /* Status */
-  .status-info  { background: #0d3366; color: #BAD2F3; font-size: 0.88rem; padding: 11px 14px; border-radius: 8px; margin-bottom: 12px; border: 1px solid #2365C4; }
-  .status-error { background: #2a0a0a; color: #FAB2BE; font-size: 0.88rem; padding: 11px 14px; border-radius: 8px; margin-bottom: 12px; border: 1px solid #EA0F33; }
-  .status-warn  { background: #1a2e4a; color: #FDE7B0; font-size: 0.88rem; padding: 11px 14px; border-radius: 8px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; border: 1px solid #F7B50F; }
+  .status-info  { background: #EEF4FC; color: #2365C4; font-size: 0.88rem; padding: 11px 14px; border-radius: 8px; margin-bottom: 12px; border: 1px solid #BAD2F3; }
+  .status-error { background: #fff0f0; color: #EA0F33; font-size: 0.88rem; padding: 11px 14px; border-radius: 8px; margin-bottom: 12px; border: 1px solid #FAB2BE; }
+  .status-warn  { background: #FFFBEB; color: #92400e; font-size: 0.88rem; padding: 11px 14px; border-radius: 8px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; border: 1px solid #F7B50F; }
 
   /* Loading */
   #loading-screen { text-align: center; padding: 50px 20px; }
-  .big-spinner { width: 44px; height: 44px; border: 4px solid #0d3366; border-top-color: #2365C4; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 16px; }
-  #loading-screen h3 { color: #EEF4FC; margin-bottom: 6px; }
-  #loading-screen p  { color: #BAD2F3; font-size: 0.88rem; }
+  .big-spinner { width: 44px; height: 44px; border: 4px solid #EEF4FC; border-top-color: #2365C4; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 16px; }
+  #loading-screen h3 { color: #08244A; margin-bottom: 6px; }
+  #loading-screen p  { color: #2365C4; font-size: 0.88rem; }
 
   /* Modal */
-  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 200; align-items: flex-start; justify-content: center; padding: 16px; overflow-y: auto; }
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(8,36,74,0.5); z-index: 200; align-items: flex-start; justify-content: center; padding: 16px; overflow-y: auto; }
   .modal-overlay.open { display: flex; }
-  .modal { background: #0d3366; border: 1px solid #2365C4; border-radius: 16px; padding: 28px; width: 100%; max-width: 600px; margin: auto; }
+  .modal { background: #ffffff; border: 1px solid #DCE8F9; border-radius: 16px; padding: 28px; width: 100%; max-width: 600px; margin: auto; box-shadow: 0 8px 32px rgba(8,36,74,0.15); }
   .modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; }
-  .modal-header h3 { font-size: 1.1rem; font-weight: 700; color: #EEF4FC; }
-  .modal-close { background: transparent; border: none; color: #5a7fa8; font-size: 1.4rem; cursor: pointer; }
-  .modal-close:hover { color: #EEF4FC; }
+  .modal-header h3 { font-size: 1.1rem; font-weight: 700; color: #08244A; }
+  .modal-close { background: transparent; border: none; color: #94a3b8; font-size: 1.4rem; cursor: pointer; }
+  .modal-close:hover { color: #08244A; }
   .modal-section { margin-bottom: 22px; }
-  .modal-section h4 { font-size: 0.85rem; font-weight: 600; color: #BAD2F3; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px; }
+  .modal-section h4 { font-size: 0.85rem; font-weight: 600; color: #2365C4; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px; }
   .modal-actions { display: flex; gap: 10px; margin-top: 24px; }
-  .res-search { width: 100%; margin-bottom: 10px; background: #08244A; border: 1px solid #2365C4; border-radius: 10px; padding: 9px 14px; color: #EEF4FC; font-size: 0.88rem; outline: none; font-family: 'Inter', sans-serif; }
-  .res-search:focus { border-color: #448BEE; }
+  .res-search { width: 100%; margin-bottom: 10px; background: #F5F7FA; border: 1px solid #BAD2F3; border-radius: 10px; padding: 9px 14px; color: #08244A; font-size: 0.88rem; outline: none; font-family: 'Inter', sans-serif; }
+  .res-search:focus { border-color: #2365C4; }
   .res-actions { display: flex; gap: 8px; margin-bottom: 10px; }
-  .btn-xs { background: #08244A; border: 1px solid #2365C4; color: #BAD2F3; border-radius: 7px; padding: 5px 12px; font-size: 0.78rem; cursor: pointer; font-family: 'Inter', sans-serif; }
-  .btn-xs:hover { background: #0d3366; color: #EEF4FC; }
+  .btn-xs { background: #EEF4FC; border: 1px solid #BAD2F3; color: #2365C4; border-radius: 7px; padding: 5px 12px; font-size: 0.78rem; cursor: pointer; font-family: 'Inter', sans-serif; }
+  .btn-xs:hover { background: #DCE8F9; }
   .tag-grid { display: flex; flex-wrap: wrap; gap: 7px; max-height: 220px; overflow-y: auto; padding: 2px; }
-  .rtag { background: #08244A; border: 1px solid #2365C4; border-radius: 7px; padding: 5px 11px; font-size: 0.78rem; cursor: pointer; color: #BAD2F3; transition: all 0.15s; user-select: none; }
-  .rtag:hover { border-color: #448BEE; color: #EEF4FC; }
-  .rtag.on { background: #2365C4; border-color: #448BEE; color: #fff; }
+  .rtag { background: #F5F7FA; border: 1px solid #BAD2F3; border-radius: 7px; padding: 5px 11px; font-size: 0.78rem; cursor: pointer; color: #08244A; transition: all 0.15s; user-select: none; }
+  .rtag:hover { border-color: #2365C4; color: #2365C4; }
+  .rtag.on { background: #2365C4; border-color: #2365C4; color: #fff; }
   .sel-badge { background: #2365C4; color: #fff; border-radius: 6px; padding: 2px 8px; font-size: 0.75rem; margin-left: 8px; }
-  .crlv-label { display: inline-block; background: #08244A; border: 1px solid #2365C4; border-radius: 6px; padding: 2px 8px; font-size: 0.72rem; color: #5a7fa8; margin-left: 6px; vertical-align: middle; }
-  .sheet-info { display: flex; align-items: center; gap: 10px; background: #0a3a1a; border: 1px solid #4ABF4C; border-radius: 10px; padding: 10px 14px; margin-bottom: 4px; }
+  .crlv-label { display: inline-block; background: #EEF4FC; border: 1px solid #BAD2F3; border-radius: 6px; padding: 2px 8px; font-size: 0.72rem; color: #2365C4; margin-left: 6px; vertical-align: middle; }
+  .sheet-info { display: flex; align-items: center; gap: 10px; background: #F0FBF0; border: 1px solid #4ABF4C; border-radius: 10px; padding: 10px 14px; margin-bottom: 4px; }
   .sheet-info .si-icon { font-size: 1.2rem; }
-  .sheet-info .si-text { font-size: 0.82rem; color: #4ABF4C; font-weight: 600; }
-  .sheet-info .si-meta { font-size: 0.75rem; color: #C3EAC3; }
+  .sheet-info .si-text { font-size: 0.82rem; color: #166534; font-weight: 600; }
+  .sheet-info .si-meta { font-size: 0.75rem; color: #4ABF4C; }
 
   /* AI thinking */
-  .ai-thinking { display: flex; align-items: center; gap: 14px; background: #0d3366; border: 1px solid #2365C4; border-radius: 12px; padding: 18px; }
-  .ai-thinking .spinner { width: 28px; height: 28px; border: 3px solid #0d3366; border-top-color: #2365C4; border-radius: 50%; animation: spin 0.7s linear infinite; flex-shrink: 0; }
-  .ai-thinking p { color: #BAD2F3; font-size: 0.9rem; }
-  .ai-thinking p b { color: #EEF4FC; display: block; margin-bottom: 3px; }
+  .ai-thinking { display: flex; align-items: center; gap: 14px; background: #EEF4FC; border: 1px solid #BAD2F3; border-radius: 12px; padding: 18px; }
+  .ai-thinking .spinner { width: 28px; height: 28px; border: 3px solid #BAD2F3; border-top-color: #2365C4; border-radius: 50%; animation: spin 0.7s linear infinite; flex-shrink: 0; }
+  .ai-thinking p { color: #2365C4; font-size: 0.9rem; }
+  .ai-thinking p b { color: #08244A; display: block; margin-bottom: 3px; }
   @keyframes spin { to { transform: rotate(360deg); } }
 
   /* Match cards */
-  .match-card { border: 2px solid #2365C4; border-radius: 12px; padding: 16px 18px; margin-bottom: 10px; background: #08244A; }
+  .match-card { border: 1px solid #DCE8F9; border-radius: 12px; padding: 16px 18px; margin-bottom: 10px; background: #F5F7FA; }
   .mc-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; flex-wrap: wrap; gap: 6px; }
-  .mc-model { font-weight: 700; color: #EEF4FC; font-size: 0.95rem; }
-  .mc-badge.high { background: #0a3a1a; color: #4ABF4C; font-size: 0.72rem; font-weight: 700; padding: 3px 10px; border-radius: 20px; }
-  .mc-meta { font-size: 0.82rem; color: #5a7fa8; }
-  .mc-reason { font-size: 0.8rem; color: #5a7fa8; margin-top: 6px; font-style: italic; }
+  .mc-model { font-weight: 700; color: #08244A; font-size: 0.95rem; }
+  .mc-badge.high { background: #F0FBF0; color: #166534; font-size: 0.72rem; font-weight: 700; padding: 3px 10px; border-radius: 20px; border: 1px solid #4ABF4C; }
+  .mc-meta { font-size: 0.82rem; color: #64748b; }
+  .mc-reason { font-size: 0.8rem; color: #64748b; margin-top: 6px; font-style: italic; }
 
   /* Badges */
-  .result-badge-exact   { background: #0a3a1a; color: #4ABF4C; font-size: 0.72rem; padding: 3px 10px; border-radius: 20px; margin-left: 6px; font-weight: 700; border: 1px solid #4ABF4C; }
-  .result-badge-similar { background: #1a2e4a; color: #FDE7B0; font-size: 0.72rem; padding: 3px 10px; border-radius: 20px; margin-left: 6px; font-weight: 700; border: 1px solid #F7B50F; }
-  .result-badge-nf      { background: #2a0a0a; color: #FAB2BE; font-size: 0.72rem; padding: 3px 10px; border-radius: 20px; margin-left: 6px; font-weight: 700; border: 1px solid #EA0F33; }
+  .result-badge-exact   { background: #F0FBF0; color: #166534; font-size: 0.72rem; padding: 3px 10px; border-radius: 20px; margin-left: 6px; font-weight: 700; border: 1px solid #4ABF4C; }
+  .result-badge-similar { background: #FFFBEB; color: #92400e; font-size: 0.72rem; padding: 3px 10px; border-radius: 20px; margin-left: 6px; font-weight: 700; border: 1px solid #F7B50F; }
+  .result-badge-nf      { background: #fff0f0; color: #EA0F33; font-size: 0.72rem; padding: 3px 10px; border-radius: 20px; margin-left: 6px; font-weight: 700; border: 1px solid #FAB2BE; }
 
   /* Results */
-  .vehicle-found { background: #0d3366; border: 1px solid #2365C4; border-radius: 10px; padding: 12px 16px; margin-bottom: 14px; font-size: 0.9rem; color: #BAD2F3; }
-  .vehicle-found strong { color: #EEF4FC; }
+  .vehicle-found { background: #EEF4FC; border: 1px solid #BAD2F3; border-radius: 10px; padding: 12px 16px; margin-bottom: 14px; font-size: 0.9rem; color: #2365C4; }
+  .vehicle-found strong { color: #08244A; }
   .summary-bar { display: flex; gap: 10px; margin-bottom: 16px; }
-  .sum-box { flex: 1; background: #08244A; border-radius: 10px; padding: 12px; text-align: center; border: 1px solid #2365C4; }
+  .sum-box { flex: 1; background: #F5F7FA; border-radius: 10px; padding: 12px; text-align: center; border: 1px solid #DCE8F9; }
   .sum-box .num { font-size: 1.5rem; font-weight: 700; }
-  .sum-box .lbl { font-size: 0.75rem; color: #5a7fa8; margin-top: 2px; }
+  .sum-box .lbl { font-size: 0.75rem; color: #64748b; margin-top: 2px; }
   .sum-box.yes .num { color: #4ABF4C; }
-  .sum-box.no  .num { color: #FAB2BE; }
+  .sum-box.no  .num { color: #EA0F33; }
   .results-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 10px; }
-  .result-item { background: #08244A; border-radius: 10px; padding: 12px 14px; display: flex; align-items: center; gap: 10px; }
+  .result-item { background: #ffffff; border-radius: 10px; padding: 12px 14px; display: flex; align-items: center; gap: 10px; }
   .result-item.yes { border: 1px solid #4ABF4C; }
-  .result-item.no  { border: 1px solid #EA0F33; }
-  .result-item.yes .rname { color: #4ABF4C; }
-  .result-item.no  .rname { color: #FAB2BE; }
+  .result-item.no  { border: 1px solid #FAB2BE; }
+  .result-item.yes .rname { color: #166534; }
+  .result-item.no  .rname { color: #EA0F33; }
   .result-item .icon  { font-size: 1.2rem; flex-shrink: 0; }
   .result-item .rname { font-size: 0.85rem; line-height: 1.3; }
 
   /* Not found */
-  .not-found-box { background: #2a0a0a; border: 1px solid #EA0F33; border-radius: 12px; padding: 28px 20px; text-align: center; }
+  .not-found-box { background: #fff0f0; border: 1px solid #FAB2BE; border-radius: 12px; padding: 28px 20px; text-align: center; }
   .not-found-box .nf-icon { font-size: 2.5rem; margin-bottom: 12px; }
-  .not-found-box .nf-title { color: #FAB2BE; font-weight: 600; margin-bottom: 6px; }
-  .not-found-box .nf-sub   { color: #BAD2F3; font-size: 0.85rem; margin-bottom: 16px; }
+  .not-found-box .nf-title { color: #EA0F33; font-weight: 600; margin-bottom: 6px; }
+  .not-found-box .nf-sub   { color: #64748b; font-size: 0.85rem; margin-bottom: 16px; }
 
   /* Number badge */
   .num-badge { background: #2365C4; color: #fff; border-radius: 50%; width: 20px; height: 20px; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.75rem; margin-right: 6px; }
@@ -411,30 +410,48 @@ function searchWithAI() {
   rd.innerHTML='<div class="card"><div class="ai-thinking"><div class="spinner"></div><p><b>IA analisando seu veículo...</b>Comparando dados do CRLV com a base de veículos suportados</p></div></div>';
   rd.scrollIntoView({behavior:'smooth'});
 
-  var prompt='Você é um especialista em identificação de veículos brasileiros. Ao fazer correspondências, baseie-se APENAS em fontes confiáveis como: site oficial do fabricante, Tabela FIPE (fipe.org.br), revistas especializadas (AutoEsporte, Quatro Rodas) e registros oficiais do DENATRAN/SENATRAN.\n\n'
-    +'Dados do CRLV do usuário:\n'
-    +'- Marca: '+(make||'não informada')+'\n'
-    +'- Modelo/Versão: '+(model||'não informado')+'\n'
-    +'- Ano Fabricação: '+(yearFab||'não informado')+'\n'
-    +'- Ano Modelo: '+(yearMod||'não informado')+'\n\n'
-    +'Lista de veículos disponíveis na base (INDEX|FABRICANTE|MODELO|ANO):\n\n'+vehicleList+'\n\n'
-    +'TAREFA — siga essa ordem:\n\n'
-    +'ETAPA 1 — Busca direta:\n'
-    +'- Identifique TODAS as versões do modelo que correspondem ao veículo do CRLV pelo nome\n'
-    +'- Retorne TODAS as linhas cujo nome contenha o modelo buscado\n'
-    +'- NÃO filtre por ano — retorne todas as versões\n'
-    +'- Se encontrou resultados, vá para ETAPA 3\n\n'
-    +'ETAPA 2 — Busca por plataforma (apenas se ETAPA 1 não retornou nada):\n'
-    +'- Pesquise qual é a plataforma de montagem do veículo do CRLV\n'
-    +'- Verifique quais outros veículos da lista compartilham a mesma plataforma\n'
-    +'- Retorne esses veículos com confidence "medium"\n\n'
-    +'ETAPA 3 — Formatação:\n'
-    +'- Ordene do mais provável para o menos provável\n'
-    +'- confidence "high" = correspondência direta pelo nome\n'
-    +'- confidence "medium" = mesma plataforma de montagem\n'
-    +'- No campo "reason", cite a fonte\n\n'
-    +'Responda APENAS com JSON válido, sem texto adicional:\n'
-    +'{"matches":[{"index":0,"confidence":"high","reason":"motivo detalhado com fonte em português"}]}';
+  var prompt =
+    'Você é um sistema especializado em identificar veículos automotores. '
+    +'Sua função é receber os dados de um veículo conforme constam no CRLV brasileiro e encontrar o modelo correspondente '
+    +'em uma base de dados de veículos com suporte a rede CAN.\n\n'
+
+    +'=== DADOS DO VEÍCULO (conforme CRLV) ===\n'
+    +'Marca: '+(make||'não informada')+'\n'
+    +'Modelo/Versão: '+(model||'não informado')+'\n'
+    +'Ano Fabricação: '+(yearFab||'não informado')+'\n'
+    +'Ano Modelo: '+(yearMod||'não informado')+'\n\n'
+
+    +'=== BASE DE VEÍCULOS DISPONÍVEIS (formato: INDEX|FABRICANTE|MODELO|ANO) ===\n'
+    +vehicleList+'\n\n'
+
+    +'=== INSTRUÇÕES DE BUSCA ===\n\n'
+
+    +'PASSO 1 — Identificação do modelo:\n'
+    +'- Compare o modelo do CRLV com os modelos da base usando seu conhecimento técnico do mercado automotivo brasileiro\n'
+    +'- Lembre que o CRLV usa nomes comerciais simplificados. Exemplos de equivalências:\n'
+    +'  "HB20" → pode ser "HB20s", "HB20s mk2 facelift (BR2)", etc.\n'
+    +'  "POLO" → pode ser "Polo mk6 (AW)", "Polo facelift", etc.\n'
+    +'  "KA SE 1.0" → pode ser "KA Sedan LATAM", etc.\n'
+    +'- Para confirmar equivalências, utilize fontes confiáveis: site oficial do fabricante no Brasil, '
+    +'Tabela FIPE (fipe.org.br), AutoEsporte, Quatro Rodas, DENATRAN/SENATRAN\n'
+    +'- Retorne TODOS os modelos da base que correspondam ao veículo do CRLV, independente do ano\n'
+    +'- NÃO descarte nenhum resultado por causa do ano — o sistema calculará isso automaticamente\n\n'
+
+    +'PASSO 2 — Se nenhum modelo for encontrado pelo nome:\n'
+    +'- Identifique a plataforma de montagem do veículo (ex: VW MQB A0, GM GEM, FCA Small)\n'
+    +'- Verifique se há veículos na base que compartilhem essa plataforma\n'
+    +'- Se encontrar, inclua-os no resultado com a nota "plataforma_similar" no campo "type"\n\n'
+
+    +'PASSO 3 — Formatação da resposta:\n'
+    +'- Ordene os resultados do mais similar ao menos similar pelo nome\n'
+    +'- Use o campo "type": "direct" para correspondência direta pelo nome\n'
+    +'- Use o campo "type": "platform" para correspondência por plataforma\n'
+    +'- No campo "reason", explique de forma clara e objetiva por que o modelo foi identificado, citando a fonte\n\n'
+
+    +'Responda APENAS com JSON válido, sem nenhum texto adicional:\n'
+    +'{"matches":[{"index":0,"type":"direct","reason":"explicação objetiva citando a fonte"}]}\n'
+    +'Se não encontrar nada, retorne: {"matches":[],"not_found_reason":"explicação do motivo"}';
+
 
   fetch(WORKER_URL, {
     method:'POST',
@@ -448,7 +465,8 @@ function searchWithAI() {
     var parsed;
     try{parsed=JSON.parse(clean);}catch(e){parsed={matches:[]};}
     lastMatches=parsed.matches||[];
-    if(!lastMatches.length)renderNotFound(make,model);
+    var notFoundReason = parsed.not_found_reason || '';
+    if(!lastMatches.length) renderNotFound(make, model, notFoundReason);
     else renderMatchCards(lastMatches);
   })
   .catch(function(e){
@@ -462,12 +480,12 @@ function showSearchErr(msg){
   el.className='status-error';el.innerHTML=msg;el.style.display='block';
 }
 
-function renderNotFound(make,model){
+function renderNotFound(make, model, reason) {
   document.getElementById('card-results').innerHTML='<div class="card">'
     +'<h2><span class="step">2</span> Resultado <span class="result-badge-nf">NÃO ENCONTRADO</span></h2>'
     +'<div class="not-found-box"><div class="nf-icon">🔍</div>'
     +'<p class="nf-title">Modelo não encontrado na base</p>'
-    +'<p class="nf-sub">Nenhuma correspondência para <b>'+make+' '+model+'</b>.</p>'
+    +'<p class="nf-sub">'+(reason||'Nenhuma correspondência para <b>'+make+' '+model+'</b>.')+'</p>'
     +'<button class="primary" style="max-width:200px;margin:0 auto" onclick="resetSearch()">🔁 Nova Consulta</button>'
     +'</div></div>';
 }
@@ -480,8 +498,8 @@ function renderMatchCards(matches){
   matches.forEach(function(m,idx){
     var row=sheetData[m.index];if(!row)return;
     var rowYear=(row[headers[4]]||'').trim();
-    var isExact=checkYearMatch(lastInput.yearFab,rowYear);
-    var isPlatform=m.confidence==='medium';
+    var isPlatform = m.type === 'platform';
+    var isExact = checkYearMatch(lastInput.yearFab, rowYear) && !isPlatform;
     var yearBadge=isExact&&!isPlatform
       ?'<span class="result-badge-exact">EXATO</span>'
       :'<span class="result-badge-similar">SIMILAR</span>';
