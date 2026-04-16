@@ -99,7 +99,7 @@
   /* Badges */
   .result-badge-exact   { background: #F0FBF0; color: #166534; font-size: 0.72rem; padding: 3px 10px; border-radius: 20px; margin-left: 6px; font-weight: 700; border: 1px solid #4ABF4C; }
   .result-badge-similar { background: #FFFBEB; color: #92400e; font-size: 0.72rem; padding: 3px 10px; border-radius: 20px; margin-left: 6px; font-weight: 700; border: 1px solid #F7B50F; }
-  .result-badge-nf      { background: #fff0f0; color: #EA0F33; font-size: 0.72rem; padding: 3px 10px; border-radius: 20px; margin-left: 6px; font-weight: 700; border: 1px solid #FAB2BE; }
+
 
   /* Results */
   .vehicle-found { background: #EEF4FC; border: 1px solid #BAD2F3; border-radius: 10px; padding: 12px 16px; margin-bottom: 14px; font-size: 0.9rem; color: #2365C4; }
@@ -411,9 +411,11 @@ function searchWithAI() {
   rd.scrollIntoView({behavior:'smooth'});
 
   var prompt =
-    'Você é um sistema especializado em identificar veículos automotores. '
-    +'Sua função é receber os dados de um veículo conforme constam no CRLV brasileiro e encontrar o modelo correspondente '
-    +'em uma base de dados de veículos com suporte a rede CAN.\n\n'
+    'Você é um sistema especializado em identificar veículos automotores e '
+    +'protocolos de comunicação veicular. Sua função é receber os dados de um '
+    +'veículo conforme constam no CRLV brasileiro e encontrar o modelo '
+    +'correspondente em uma base de dados de veículos com suporte a rede CAN, '
+    +'considerando também compatibilidade com o protocolo J1939.\n\n'
 
     +'=== DADOS DO VEÍCULO (conforme CRLV) ===\n'
     +'Marca: '+(make||'não informada')+'\n'
@@ -435,18 +437,33 @@ function searchWithAI() {
     +'- Para confirmar equivalências, utilize fontes confiáveis: site oficial do fabricante no Brasil, '
     +'Tabela FIPE (fipe.org.br), AutoEsporte, Quatro Rodas, DENATRAN/SENATRAN\n'
     +'- Retorne TODOS os modelos da base que correspondam ao veículo do CRLV, independente do ano\n'
-    +'- NÃO descarte nenhum resultado por causa do ano — o sistema calculará isso automaticamente\n\n'
+    +'- NÃO descarte nenhum resultado por causa do ano — o sistema calculará isso automaticamente\n'
+    +'- NÃO retorne apenas 1 resultado quando houver múltiplos — se "HB20" aparece em 3 linhas da base, retorne as 3\n\n'
 
     +'PASSO 2 — Se nenhum modelo for encontrado pelo nome:\n'
     +'- Identifique a plataforma de montagem do veículo (ex: VW MQB A0, GM GEM, FCA Small)\n'
     +'- Verifique se há veículos na base que compartilhem essa plataforma\n'
-    +'- Se encontrar, inclua-os no resultado com a nota "plataforma_similar" no campo "type"\n\n'
+    +'- Se encontrar, inclua-os no resultado com "type": "platform"\n\n'
 
-    +'PASSO 3 — Formatação da resposta:\n'
-    +'- Ordene os resultados do mais similar ao menos similar pelo nome\n'
-    +'- Use o campo "type": "direct" para correspondência direta pelo nome\n'
-    +'- Use o campo "type": "platform" para correspondência por plataforma\n'
-    +'- No campo "reason", explique de forma clara e objetiva por que o modelo foi identificado, citando a fonte\n\n'
+    +'PASSO 3 — Análise de compatibilidade J1939:\n'
+    +'- Execute este passo APENAS se os passos 1 e 2 não retornaram nenhum resultado\n'
+    +'- Analise se o veículo do CRLV é compatível com o protocolo SAE J1939\n'
+    +'- O J1939 é tipicamente usado em veículos pesados (caminhões, ônibus, tratores, máquinas agrícolas '
+    +'e de construção) fabricados após 2000\n'
+    +'- Veículos de passeio raramente usam J1939 — eles usam OBD-II/CAN\n'
+    +'- Se o veículo for compatível com J1939, retorne com "type": "j1939", index: -1, explicando a '
+    +'compatibilidade e deixando claro que não há documentação específica na base mas a comunicação '
+    +'via J1939 pode ser possível\n'
+    +'- Se não for compatível com J1939, retorne matches vazio\n\n'
+
+    +'PASSO 4 — Formatação da resposta:\n'
+    +'- Ordene os resultados do mais similar ao menos similar\n'
+    +'- "type": "direct" → correspondência direta pelo nome\n'
+    +'- "type": "platform" → mesma plataforma de montagem\n'
+    +'- "type": "j1939" → compatível com protocolo J1939 (sem entrada na base, use index: -1)\n'
+    +'- No campo "reason", explique claramente o motivo citando a fonte\n'
+    +'- Para "type": "j1939", deixe explícito que o veículo não está na base Teltonika mas é '
+    +'compatível com J1939\n\n'
 
     +'Responda APENAS com JSON válido, sem nenhum texto adicional:\n'
     +'{"matches":[{"index":0,"type":"direct","reason":"explicação objetiva citando a fonte"}]}\n'
@@ -495,8 +512,21 @@ function renderMatchCards(matches){
     +'<div class="status-info" style="margin-bottom:16px">📋 CRLV: <b>'+lastInput.make+'</b> '+lastInput.model
     +' &nbsp;·&nbsp; Fab: '+lastInput.yearFab+' / Mod: '+lastInput.yearMod+'</div>';
 
-  matches.forEach(function(m,idx){
-    var row=sheetData[m.index];if(!row)return;
+  matches.forEach(function(m, idx) {
+    // J1939 result — show as SIMILAR with explanation
+    if (m.type === 'j1939') {
+      html += '<div class="match-card">'
+        +'<div style="display:inline-flex;align-items:center;gap:6px;background:#F5F7FA;border:1px solid #DCE8F9;border-radius:6px;padding:4px 10px;margin-bottom:10px;font-size:0.78rem;color:#2365C4">'
+        +'<span class="num-badge">'+(idx+1)+'</span>'+(idx===0?'Resultado mais provável':'Resultado alternativo')+'</div>'
+        +'<div class="mc-header">'
+        +'<span class="mc-model">'+(make||'')+' '+(model||'')+' <span class="result-badge-similar">SIMILAR</span></span></div>'
+        +'<div class="mc-reason">💬 '+m.reason+'</div>'
+        +'<div class="status-warn" style="margin-top:10px;font-size:0.82rem">⚠️ <span><b>Compatibilidade via J1939</b> — Veículo não encontrado na base Teltonika. A compatibilidade via protocolo SAE J1939 pode ser possível, porém recomenda-se teste em campo para confirmação.</span></div>'
+        +'</div>';
+      return;
+    }
+
+    var row = sheetData[m.index]; if (!row) return;
     var rowYear=(row[headers[4]]||'').trim();
     var isPlatform = m.type === 'platform';
     var isExact = checkYearMatch(lastInput.yearFab, rowYear) && !isPlatform;
